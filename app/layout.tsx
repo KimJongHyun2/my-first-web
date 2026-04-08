@@ -30,6 +30,12 @@ export default function RootLayout({
               >
                 게시글
               </Link>
+              <Link
+                href="/posts/new"
+                className="rounded bg-white/10 px-3 py-1 transition hover:bg-white/20"
+              >
+                새 글 쓰기
+              </Link>
             </div>
           </div>
         </nav>
