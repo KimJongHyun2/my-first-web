@@ -1,26 +1,49 @@
-import Link from "next/link";
-import { posts } from "@/lib/posts";
+import PostsClient from "@/components/PostsClient";
+import { posts as fallbackPosts, type Post } from "@/lib/posts";
 
-export default function PostsPage() {
+type JsonPlaceholderPost = {
+  id: number;
+  title: string;
+  body: string;
+};
+
+const formatDate = (daysAgo: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date.toISOString().slice(0, 10);
+};
+
+async function getPosts(): Promise<Post[]> {
+  try {
+    const response = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=12", {
+      next: { revalidate: 60 },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch posts");
+    }
+
+    const apiPosts: JsonPlaceholderPost[] = await response.json();
+
+    return apiPosts.map((post, index) => ({
+      id: post.id,
+      title: post.title,
+      content: post.body,
+      author: `작성자 ${post.id}`,
+      date: formatDate(index),
+    }));
+  } catch {
+    return fallbackPosts;
+  }
+}
+
+export default async function PostsPage() {
+  const posts = await getPosts();
+
   return (
     <section className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">블로그</h1>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {posts.map((post) => (
-          <Link
-            key={post.id}
-            href={`/posts/${post.id}`}
-            className="block rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <h2 className="text-lg font-semibold text-gray-900">{post.title}</h2>
-            <p className="mt-2 line-clamp-2 text-sm text-gray-600">{post.content}</p>
-            <p className="mt-3 text-sm text-gray-500">
-              {post.author} · {post.date}
-            </p>
-          </Link>
-        ))}
-      </div>
+      <PostsClient initialPosts={posts} />
     </section>
   );
 }

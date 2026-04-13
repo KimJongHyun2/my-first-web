@@ -7,9 +7,18 @@ export default function NewPostPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [titleError, setTitleError] = useState(false);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!title.trim()) {
+      setTitleError(true);
+      alert("제목을 입력해주세요.");
+      return;
+    }
+
+    setTitleError(false);
     alert("저장되었습니다");
     router.push("/posts");
   };
@@ -30,11 +39,19 @@ export default function NewPostPage() {
             id="title"
             type="text"
             value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none transition focus:border-gray-500"
+            onChange={(event) => {
+              setTitle(event.target.value);
+              if (event.target.value.trim()) {
+                setTitleError(false);
+              }
+            }}
+            className={`w-full rounded-md border px-4 py-2 outline-none transition focus:border-gray-500 ${
+              titleError ? "border-red-500" : "border-gray-300"
+            }`}
             placeholder="제목을 입력하세요"
             required
           />
+          {titleError ? <p className="text-sm text-red-600">제목은 필수 입력값입니다.</p> : null}
         </div>
 
         <div className="space-y-2">
