@@ -354,3 +354,5 @@ vercel logs          # 에러 로그
 Ch8 Supabase 작업 중. 진행: (예: 마이그레이션까지 완료, Next.js 연결 차례)
 @supabase/ssr의 createBrowserClient 패턴으로 작업해줘.
 ```
+
+# supabase, vercel 연동 테스트
