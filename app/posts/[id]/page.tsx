@@ -12,35 +12,41 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
 
   if (!post) {
     return (
-      <section className="space-y-4">
-        <h1 className="text-2xl font-bold text-gray-900">게시글 상세</h1>
-        <p className="text-gray-600">게시글을 찾을 수 없습니다</p>
+      <section className="apple-card space-y-4 p-8">
+        <p className="text-sm font-medium uppercase tracking-[0.18em] text-slate-500">Note</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">게시글 상세</h1>
+        <p className="text-slate-600">아직 내용을 불러오지 못했어요.</p>
         <Link
           href="/posts"
-          className="inline-flex rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+          className="inline-flex rounded-full border border-slate-200 bg-white/80 px-5 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
         >
-          목록으로 돌아가기
+          목록으로
         </Link>
       </section>
     );
   }
 
   return (
-    <article className="space-y-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-bold text-gray-900">{post.title}</h1>
-        <p className="text-sm text-gray-500">
+    <article className="apple-card space-y-8 p-8 sm:p-10">
+      <header className="space-y-4">
+        <div className="inline-flex rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-medium tracking-[0.18em] text-slate-500">
+          NOTE
+        </div>
+        <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-balance text-slate-950 sm:text-4xl">
+          {post.title}
+        </h1>
+        <p className="text-sm text-slate-500">
           {post.author} · {post.date}
         </p>
       </header>
 
-      <p className="leading-7 text-gray-700">{post.content}</p>
+      <p className="max-w-3xl text-base leading-8 text-slate-600">{post.content}</p>
 
       <Link
         href="/posts"
-        className="inline-flex rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+        className="inline-flex rounded-full border border-slate-200 bg-white/80 px-5 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
       >
-        목록으로 돌아가기
+        목록으로
       </Link>
     </article>
   );

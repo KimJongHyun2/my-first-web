@@ -43,16 +43,17 @@ export default function SignupForm({ redirectTarget }: { redirectTarget: string 
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>회원가입</CardTitle>
-          <CardDescription>새 계정을 만들어보세요</CardDescription>
+    <div className="mx-auto flex min-h-[calc(100vh-200px)] max-w-2xl items-center">
+      <Card className="relative w-full p-0 shadow-[0_30px_80px_rgba(15,23,42,0.12)]">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-slate-900 via-slate-400 to-slate-200" />
+        <CardHeader className="pt-8">
+          <CardTitle className="text-2xl font-semibold text-slate-950">회원가입</CardTitle>
+          <CardDescription className="text-slate-600">기록을 남길 준비를 해보세요.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignup} className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-1">
+        <CardContent className="pb-8">
+          <form onSubmit={handleSignup} className="space-y-5">
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-sm font-medium text-slate-600">
                 이름
               </label>
               <Input
@@ -66,8 +67,8 @@ export default function SignupForm({ redirectTarget }: { redirectTarget: string 
               />
             </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1">
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-600">
                 이메일
               </label>
               <Input
@@ -81,8 +82,8 @@ export default function SignupForm({ redirectTarget }: { redirectTarget: string 
               />
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-1">
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-600">
                 비밀번호
               </label>
               <Input
@@ -97,7 +98,7 @@ export default function SignupForm({ redirectTarget }: { redirectTarget: string 
             </div>
 
             {error && (
-              <div className="space-y-2 rounded-md bg-red-50 p-3 text-sm text-red-800">
+              <div className="space-y-2 rounded-[1.5rem] border border-red-200 bg-red-50/80 p-4 text-sm text-red-800">
                 <div>{error}</div>
                 {isConnectionError && (
                   <div className="text-xs text-red-700">
@@ -108,21 +109,21 @@ export default function SignupForm({ redirectTarget }: { redirectTarget: string 
             )}
 
             {success && (
-              <div className="rounded-md bg-green-50 p-3 text-sm text-green-800">
+              <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50/80 p-4 text-sm text-emerald-800">
                 {success}
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading || !!success}>
+            <Button type="submit" className="w-full bg-slate-900 text-white shadow-lg shadow-slate-900/10 hover:bg-slate-800" disabled={loading || !!success}>
               {loading ? '가입 중...' : '회원가입'}
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm">
-            이미 계정이 있으신가요?{' '}
+          <div className="mt-6 text-center text-sm text-slate-500">
+            이미 시작하셨나요?{' '}
             <Link
               href={`/login?redirect=${encodeURIComponent(redirectTarget)}`}
-              className="text-primary hover:underline"
+              className="font-medium text-slate-900 underline-offset-4 hover:underline"
             >
               로그인
             </Link>

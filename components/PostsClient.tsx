@@ -34,32 +34,38 @@ export default function PostsClient({ initialPosts }: PostsClientProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <SearchBar query={query} onChange={setQuery} />
 
       {filteredPosts.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-gray-300 bg-white p-6 text-sm text-gray-600">
-          검색 결과가 없습니다.
+        <p className="apple-card border-dashed p-6 text-sm text-slate-600">
+          아직 맞는 글이 없네요. 다른 단어로 한 번 더 찾아보세요.
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {filteredPosts.map((post) => (
             <article
               key={post.id}
-              className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="group apple-card p-5 transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(15,23,42,0.12)]"
             >
               <Link href={`/posts/${post.id}`} className="block">
-                <h2 className="text-lg font-semibold text-gray-900">{post.title}</h2>
-                <p className="mt-2 line-clamp-2 text-sm text-gray-600">{post.content}</p>
-                <p className="mt-3 text-sm text-gray-500">
-                  {post.author} · {post.date}
-                </p>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500">
+                    Note
+                  </span>
+                  <span className="text-xs text-slate-400">{post.date}</span>
+                </div>
+                <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 transition group-hover:text-slate-700">
+                  {post.title}
+                </h2>
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{post.content}</p>
+                <p className="mt-4 text-sm text-slate-500">{post.author}</p>
               </Link>
 
               <button
                 type="button"
                 onClick={() => handleDelete(post.id)}
-                className="mt-4 rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                className="mt-5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
               >
                 삭제
               </button>

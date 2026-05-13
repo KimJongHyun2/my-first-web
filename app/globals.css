@@ -44,9 +44,11 @@
 
 body {
 	background:
-		radial-gradient(circle at 8% 12%, rgba(16, 35, 31, 0.09), transparent 34%),
-		radial-gradient(circle at 92% 20%, rgba(53, 121, 104, 0.1), transparent 28%),
-		linear-gradient(180deg, #f8fbfa 0%, var(--background) 100%);
+		radial-gradient(circle at 10% 8%, rgba(99, 115, 129, 0.12), transparent 24%),
+		radial-gradient(circle at 88% 14%, rgba(148, 163, 184, 0.14), transparent 20%),
+		radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.9), transparent 34%),
+		linear-gradient(180deg, #f7f8fb 0%, #f2f4f8 48%, #edf1f7 100%);
+	background-attachment: fixed;
 }
 
 .portfolio-hero::before {
@@ -153,9 +155,27 @@ body {
     @apply border-border outline-ring/50;
 	}
   body {
-    @apply bg-background text-foreground;
+		@apply bg-background text-foreground antialiased;
 	}
   html {
     @apply font-sans;
+	}
+}
+
+@layer utilities {
+	.text-balance {
+		text-wrap: balance;
+	}
+
+	.apple-card {
+		@apply rounded-[2rem] border border-white/70 bg-white/75 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl;
+	}
+
+	.apple-pill {
+		@apply rounded-full border border-white/70 bg-white/80 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-xl;
+	}
+
+	.apple-muted {
+		@apply text-slate-500;
 	}
 }

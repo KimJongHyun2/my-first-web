@@ -19,11 +19,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={cn("font-sans", geist.variable)}>
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen flex flex-col overflow-x-hidden bg-background text-foreground antialiased">
         <AuthProvider>
+          <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+            <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-slate-200/40 blur-3xl" />
+            <div className="absolute right-[-6rem] top-20 h-80 w-80 rounded-full bg-white/70 blur-3xl" />
+            <div className="absolute bottom-[-8rem] left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-slate-100/80 blur-3xl" />
+          </div>
           <Navigation />
-          <main className="max-w-4xl mx-auto p-6 w-full flex-1">{children}</main>
-          <footer className="py-4 text-center text-gray-500">© 2026 내 블로그</footer>
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-8 sm:px-6 lg:px-8">{children}</main>
+          <footer className="pb-8 text-center text-sm text-slate-500">
+            © 2026 내 블로그
+          </footer>
         </AuthProvider>
       </body>
     </html>

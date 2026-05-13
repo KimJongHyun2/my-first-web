@@ -41,8 +41,17 @@ export default async function PostsPage() {
   const posts = await getPosts();
 
   return (
-    <section className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">블로그</h1>
+    <section className="space-y-8">
+      <div className="apple-card p-8 sm:p-10">
+        <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Posts</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+          게시글 목록
+        </h1>
+        <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+          최근에 적은 기록들을 한눈에 살펴보세요.
+        </p>
+      </div>
+
       <PostsClient initialPosts={posts} />
     </section>
   );

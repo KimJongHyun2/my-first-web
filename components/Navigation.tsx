@@ -17,29 +17,32 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="bg-gray-800 text-white">
-      <div className="mx-auto flex w-full max-w-4xl items-center justify-between p-4">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
-          내 블로그
+    <nav className="sticky top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8">
+      <div className="apple-pill mx-auto flex w-full max-w-6xl items-center justify-between border-white/60 px-4 py-3 text-slate-700 shadow-[0_16px_50px_rgba(15,23,42,0.08)] sm:px-5">
+        <Link href="/" className="flex items-center gap-3 text-base font-semibold tracking-tight text-slate-900">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white shadow-lg shadow-slate-900/10">
+            M
+          </span>
+          <span>내 블로그</span>
         </Link>
-        <div className="flex items-center gap-4 text-sm font-medium">
-          <Link href="/" className="rounded px-2 py-1 transition hover:bg-gray-700">
+        <div className="flex items-center gap-2 text-sm font-medium text-slate-600 sm:gap-3">
+          <Link href="/" className="rounded-full px-3 py-2 transition hover:bg-slate-100 hover:text-slate-900">
             홈
           </Link>
           <Link
             href="/posts"
-            className="rounded px-2 py-1 transition hover:bg-gray-700"
+            className="rounded-full px-3 py-2 transition hover:bg-slate-100 hover:text-slate-900"
           >
             게시글
           </Link>
 
           {loading ? (
-            <div className="rounded px-3 py-1 text-gray-300">로딩 중...</div>
+            <div className="rounded-full bg-slate-100 px-3 py-2 text-slate-400">로딩 중...</div>
           ) : user ? (
             <>
               <Link
                 href="/posts/new"
-                className="rounded bg-white/10 px-3 py-1 transition hover:bg-white/20"
+                className="rounded-full bg-slate-900 px-4 py-2 text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800"
               >
                 새 글 쓰기
               </Link>
@@ -47,7 +50,7 @@ export default function Navigation() {
                 onClick={handleLogout}
                 variant="ghost"
                 size="sm"
-                className="rounded px-3 py-1 text-white hover:bg-gray-700"
+                className="rounded-full px-4 py-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               >
                 로그아웃
               </Button>
@@ -56,13 +59,13 @@ export default function Navigation() {
             <>
               <Link
                 href="/login"
-                className="rounded px-3 py-1 transition hover:bg-gray-700"
+                className="rounded-full px-4 py-2 transition hover:bg-slate-100 hover:text-slate-900"
               >
                 로그인
               </Link>
               <Link
                 href="/signup"
-                className="rounded bg-white/10 px-3 py-1 transition hover:bg-white/20"
+                className="rounded-full bg-slate-900 px-4 py-2 text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800"
               >
                 회원가입
               </Link>
