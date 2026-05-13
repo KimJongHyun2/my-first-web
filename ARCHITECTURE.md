@@ -399,19 +399,106 @@ users (1) ─── posts (N)
 
 ---
 
-#### 데이터 모델 활용처
+## Auth Flow (인증 플로우 - Ch9)
 
-**Ch8 (인증)**:
-- users 테이블로 Supabase Auth 연동
-- 로그인 후 users.name, users.avatar_url 표시
+### 인증 시스템 개요
 
-**Ch9 (CRUD)**:
-- posts 테이블에 글 작성/수정/삭제
-- posts.author_id로 자신의 글만 수정/삭제 가능 (RLS 규칙)
+**기술**:
+- Supabase Auth (Email/Password 기반)
+- React Context (AuthProvider)
+- middleware.ts (보호 라우트)
 
-**Ch11 (RLS - Row Level Security)**:
-- 사용자는 자신의 글만 수정/삭제 가능
-- admin은 모든 글 관리 가능
+**규칙**:
+- 이메일/비밀번호 인증만 사용 (소셜 로그인 X)
+- signInWithPassword() 사용 (구버전 auth.signIn() 금지)
+- service_role 키는 서버에만 (.env.local)
+
+### 1) 회원가입 플로우 (/signup)
+
+```
+사용자 입력 (이메일, 비밀번호)
+  ↓
+Supabase Auth에 회원가입 (supabase.auth.signUp)
+  ↓
+users 테이블에 프로필 정보 저장
+  ↓
+자동 로그인 또는 로그인 페이지로 리다이렉트
+```
+
+**구현 파일**:
+- `app/signup/page.tsx`: 회원가입 폼
+- `contexts/AuthContext.tsx`: Auth Context (signUp 메서드)
+
+### 2) 로그인 플로우 (/login)
+
+```
+사용자 입력 (이메일, 비밀번호)
+  ↓
+Supabase Auth에 로그인 (supabase.auth.signInWithPassword)
+  ↓
+AuthContext 업데이트 (user, session)
+  ↓
+이전 페이지 또는 /posts로 리다이렉트
+```
+
+**구현 파일**:
+- `app/login/page.tsx`: 로그인 폼
+- `contexts/AuthContext.tsx`: Auth Context (signIn 메서드)
+
+### 3) 보호 라우트 (/posts/new, /mypage)
+
+로그인이 필수인 페이지는 middleware.ts에서 인증 확인:
+
+```typescript
+// middleware.ts 구조
+const protectedPaths = ['/posts/new', '/mypage'];
+
+if (isProtectedPath && !hasSession) {
+  redirect('/login?redirect=/original-path');
+}
+```
+
+**보호되는 라우트**:
+- `/posts/new` (포스트 작성)
+- `/mypage` (마이페이지)
+
+**미보호 라우트**:
+- `/` (홈)
+- `/posts` (포스트 목록)
+- `/posts/[id]` (포스트 상세)
+- `/login` (로그인)
+- `/signup` (회원가입)
+
+### 4) 로그아웃
+
+```
+사용자 "로그아웃" 버튼 클릭
+  ↓
+Supabase Auth 세션 제거 (supabase.auth.signOut)
+  ↓
+AuthContext 업데이트 (user = null)
+  ↓
+홈으로 리다이렉트
+```
+
+### Auth Context 구조 (contexts/AuthContext.tsx)
+
+```typescript
+interface AuthContext {
+  user: User | null;
+  session: Session | null;
+  loading: boolean;
+  signUp(email: string, password: string, name: string): Promise<void>;
+  signIn(email: string, password: string): Promise<void>;
+  signOut(): Promise<void>;
+  refreshUser(): Promise<void>;
+}
+
+// Provider
+<AuthProvider>
+  {children}
+</AuthProvider>
+```
 
 ---
 

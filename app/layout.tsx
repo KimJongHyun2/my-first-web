@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { AuthProvider } from "@/contexts/AuthContext";
+import Navigation from "@/components/Navigation";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -19,32 +20,11 @@ export default function RootLayout({
   return (
     <html lang="ko" className={cn("font-sans", geist.variable)}>
       <body className="min-h-screen flex flex-col">
-        <nav className="bg-gray-800 text-white">
-          <div className="mx-auto flex w-full max-w-4xl items-center justify-between p-4">
-            <Link href="/" className="text-lg font-semibold tracking-tight">
-              내 블로그
-            </Link>
-            <div className="flex items-center gap-4 text-sm font-medium">
-              <Link href="/" className="rounded px-2 py-1 transition hover:bg-gray-700">
-                홈
-              </Link>
-              <Link
-                href="/posts"
-                className="rounded px-2 py-1 transition hover:bg-gray-700"
-              >
-                게시글
-              </Link>
-              <Link
-                href="/posts/new"
-                className="rounded bg-white/10 px-3 py-1 transition hover:bg-white/20"
-              >
-                새 글 쓰기
-              </Link>
-            </div>
-          </div>
-        </nav>
-        <main className="max-w-4xl mx-auto p-6 w-full flex-1">{children}</main>
-        <footer className="py-4 text-center text-gray-500">© 2026 내 블로그</footer>
+        <AuthProvider>
+          <Navigation />
+          <main className="max-w-4xl mx-auto p-6 w-full flex-1">{children}</main>
+          <footer className="py-4 text-center text-gray-500">© 2026 내 블로그</footer>
+        </AuthProvider>
       </body>
     </html>
   );

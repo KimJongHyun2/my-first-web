@@ -1,54 +1,28 @@
-AGENTS.md를 참조한다.
+@AGENTS.md를 참조하고, 아래는 **Supabase Auth 추가 규칙**입니다.
 
-## Tech Stack
+## Supabase Auth (Ch9)
 
-- Next.js 16.2.1 (App Router only)
-- React 19.2.4
-- Tailwind CSS 4
-- shadcn/ui (components/ui/ 경로에 설치됨)
+### 버전 정책
 
-## Coding Conventions
+- 교재 기준: @supabase/supabase-js 2.47.12, @supabase/ssr 0.5.2
+- 현재 설치: @supabase/supabase-js 2.105.1, @supabase/ssr 0.10.2 (최신)
+- 수업 프롬프트와 설명은 교재 기준으로 통일
+- 빌드 오류는 package.json 기준으로 원인 확인
 
-- Default to Server Components unless a Client Component is required.
-- Use Tailwind CSS for styling.
-- Keep components simple and easy to verify.
-- Prefer files inside `app/` for routes.
+### 인증 규칙
 
-## Design Tokens
+- 이메일/비밀번호 인증만 사용 (소셜 로그인 X)
+- 환경변수: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Client 인증: `@supabase/supabase-js` + `signInWithPassword`
+- Server 작업: Supabase Admin Client 사용 (service_role 키는 .env.local만)
+- Auth 상태 관리: React Context + AuthProvider
+- 보호 라우트: `middleware.ts` 사용 (pages router X)
+- 구 API 금지: `auth.signIn()` X → `signInWithPassword()` 사용
 
-- Primary color: shadcn/ui --primary
-- Background: --background
-- Card: shadcn/ui Card 컴포넌트 사용 (rounded-lg shadow-sm)
-- Spacing: 컨텐츠 간격 space-y-6, 카드 내부 p-6
-- Max width: max-w-4xl mx-auto (메인 컨텐츠)
-- 반응형: md 이상 2열 그리드, 모바일 1열
+### 파일 위치
 
-## Component Rules
-
-- UI 컴포넌트는 shadcn/ui 사용 (components/ui/)
-- Button, Card, Input, Dialog 등 shadcn/ui 컴포넌트 우선
-- 커스텀 컴포넌트는 components/ 루트에 배치
-- Tailwind 기본 컬러 직접 사용 금지 → CSS 변수(디자인 토큰) 사용
-
-## Known AI Mistakes
-
-- Do not use `next/router`; use `next/navigation` when navigation is needed.
-- Do not create `pages/` router files; this project uses the App Router.
-- Do not add `"use client"` unless interactivity or browser APIs are actually needed.
-
-## Design Tokens
-
-- Primary color: shadcn/ui --primary (어두운 파란색 계열)
-- Background: --background (흰색)
-- Card: shadcn/ui Card 컴포넌트 사용 (rounded-lg shadow-sm)
-- Spacing: 컨텐츠 간격 space-y-6, 카드 내부 p-6
-- Max width: max-w-4xl mx-auto (메인 컨텐츠)
-- 반응형: md 이상 2열 그리드, 모바일 1열
-
-## Component Rules
-
-- UI 컴포넌트는 shadcn/ui 사용 (components/ui/)
-- Button, Card, Input, Dialog 등 shadcn/ui 컴포넌트 우선
-- 커스텀 컴포넌트는 components/ 루트에 배치
-- Tailwind 기본 컬러 직접 사용 금지 → CSS 변수(디자인 토큰) 사용
+- Auth Context: `contexts/AuthContext.tsx`
+- Middleware: `middleware.ts` (프로젝트 루트)
+- 로그인 페이지: `app/login/page.tsx`
+- 회원가입 페이지: `app/signup/page.tsx`
 

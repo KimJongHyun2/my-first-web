@@ -4,6 +4,7 @@
 - React 19.2.4
 - Tailwind CSS 4
 - shadcn/ui (components/ui/ 경로에 설치됨)
+- Supabase (@supabase/supabase-js 2.105.1, @supabase/ssr 0.10.2)
 
 ## Coding Conventions
 
@@ -14,8 +15,8 @@
 
 ## Design Tokens
 
-- Primary color: shadcn/ui --primary
-- Background: --background
+- Primary color: shadcn/ui --primary (어두운 파란색 계열)
+- Background: --background (흰색)
 - Card: shadcn/ui Card 컴포넌트 사용 (rounded-lg shadow-sm)
 - Spacing: 컨텐츠 간격 space-y-6, 카드 내부 p-6
 - Max width: max-w-4xl mx-auto (메인 컨텐츠)
