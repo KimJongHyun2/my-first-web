@@ -1,44 +1,45 @@
-import PostsClient from "@/components/PostsClient";
-import { posts as fallbackPosts, type Post } from "@/lib/posts";
+"use client";
 
-type JsonPlaceholderPost = {
-  id: number;
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+type PostRow = {
+  id: string;
   title: string;
-  body: string;
+  content: string;
+  created_at: string;
+  user_id: string;
 };
 
-const formatDate = (daysAgo: number) => {
-  const date = new Date();
-  date.setDate(date.getDate() - daysAgo);
-  return date.toISOString().slice(0, 10);
-};
+const supabase = createClient();
 
-async function getPosts(): Promise<Post[]> {
-  try {
-    const response = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=12", {
-      next: { revalidate: 60 },
-    });
+export default function PostsPage() {
+  const [posts, setPosts] = useState<PostRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch posts");
-    }
+  useEffect(() => {
+    const loadPosts = async () => {
+      const { data, error: queryError } = await supabase
+        .from("posts")
+        .select("id, title, content, created_at, user_id")
+        .order("created_at", { ascending: false });
 
-    const apiPosts: JsonPlaceholderPost[] = await response.json();
+      if (queryError) {
+        console.error("Failed to load posts:", queryError);
+        setError("게시글을 불러오지 못했습니다.");
+        setPosts([]);
+      } else {
+        setPosts(data ?? []);
+        setError(null);
+      }
 
-    return apiPosts.map((post, index) => ({
-      id: post.id,
-      title: post.title,
-      content: post.body,
-      author: `작성자 ${post.id}`,
-      date: formatDate(index),
-    }));
-  } catch {
-    return fallbackPosts;
-  }
-}
+      setLoading(false);
+    };
 
-export default async function PostsPage() {
-  const posts = await getPosts();
+    loadPosts();
+  }, []);
 
   return (
     <section className="space-y-8">
@@ -52,7 +53,40 @@ export default async function PostsPage() {
         </p>
       </div>
 
-      <PostsClient initialPosts={posts} />
+      {loading ? <p className="apple-card p-6 text-sm text-slate-600">불러오는 중...</p> : null}
+
+      {!loading && error ? <p className="apple-card p-6 text-sm text-red-600">{error}</p> : null}
+
+      {!loading && !error && posts.length === 0 ? (
+        <p className="apple-card border-dashed p-6 text-sm text-slate-600">아직 게시글이 없어요.</p>
+      ) : null}
+
+      {!loading && !error && posts.length > 0 ? (
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {posts.map((post) => (
+            <article
+              key={post.id}
+              className="group apple-card p-5 transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(15,23,42,0.12)]"
+            >
+              <Link href={`/posts/${post.id}`} className="block">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500">
+                    Post
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {new Date(post.created_at).toLocaleDateString("ko-KR")}
+                  </span>
+                </div>
+                <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 transition group-hover:text-slate-700">
+                  {post.title}
+                </h2>
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{post.content}</p>
+                <p className="mt-4 text-xs text-slate-500">작성자 ID: {post.user_id}</p>
+              </Link>
+            </article>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

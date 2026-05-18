@@ -2,17 +2,21 @@
 
 ## 현재 상태
 
-- 마지막 작업일: 2026-05-13
-- 완료된 작업: **Ch7 완전 완료** — 페이지 맵, 유저 플로우, 와이어프레임, 디자인 전략, 데이터 모델
-- 현재 작업: Ch9 Supabase Auth 완료
-- 다음: CRUD 구현
+- 마지막 작업일: 2026-05-18
+- 완료된 작업: **Ch7~10 완전 완료** — 디자인, Supabase 연결, Auth 구현, Posts CRUD 완성
+- 현재 작업: 문서 정비 중
+- 다음: Ch11 RLS 보안 구현
 
 ## 기술 결정 사항
 
 - 인증: Supabase Auth (이메일/비밀번호만 사용)
 - 상태관리: React Context (AuthProvider)
-- 이미지: Supabase Storage 사용 예정
+- CRUD: `lib/posts.ts` 함수 기반
 - 보호 라우트: middleware.ts 사용
+- 수정/삭제 보안: UX는 Ch10, 실제 RLS는 Ch11
+- 데이터 모델: Ch8 기준 `profiles` / `posts` 스키마 유지
+- `profiles`: `id`, `username`, `avatar_url`, `role`, `created_at`
+- `posts`: `id`, `user_id`, `title`, `content`, `created_at`
 
 ## 버전 정책
 
@@ -22,14 +26,16 @@
 
 ## 변경된 파일
 
-- `.github/copilot-instructions.md`: Ch9 Supabase Auth 규칙 추가
-  - 버전 정책 명시 (교재 vs 현재 설치)
-  - 인증 규칙 (이메일/비밀번호만, signInWithPassword 사용)
-  - 파일 위치 (Auth Context, Middleware)
-
-- `AGENTS.md`: Supabase 명시, Design Tokens 중복 정리
-
-- `.agent/rules/project.md`: 새로 생성 (Ch9 기준 프로젝트 규칙)
+- `.github/copilot-instructions.md`: Ch9 Auth + Ch10 CRUD 규칙 추가
+- `ARCHITECTURE.md`: Ch8 데이터 모델과 Ch10 CRUD 흐름 반영
+- `todo.md`: Ch10 CRUD 작업 세분화
+- `.agent/rules/project.md`: Ch10 기준 프로젝트 규칙 재작성
+- `docs/ch07a.md`: Ch8 스키마 이름으로 정리
+- `docs/ch08a.md`: profiles/posts 스키마를 Ch8 기준으로 정리
+- `app/posts/page.tsx` (Ch10): readPosts 구현, 로딩/에러/빈상태 처리
+- `app/posts/[id]/page.tsx` (Ch10): readPostById + 작성자 UI 분기, notFound() 처리, 삭제 기능
+- `app/posts/[id]/edit/page.tsx` (Ch10): updatePost 구현, 작성자 확인
+- `app/posts/new/page.tsx` (Ch10): createPost 구현, Auth 체크
 
 ## 해결된 이슈
 
@@ -61,6 +67,62 @@
 - `AuthProvider`가 앱 전체의 로그인 상태를 관리함
 - `/posts/new`는 비로그인 사용자를 `/login`으로 보냄
 - 로그인/회원가입 화면은 `redirect` 쿼리를 유지해 원래 목적지로 복귀할 수 있음
+
+## Supabase Posts CRUD (Ch10)
+
+### 구현 완료
+- ✅ 포스트 목록 조회 (`app/posts/page.tsx`) - readPosts
+- ✅ 포스트 상세 조회 (`app/posts/[id]/page.tsx`) - readPostById + 작성자 UI 분기
+- ✅ 포스트 작성 (`app/posts/new/page.tsx`) - createPost + Auth 체크
+- ✅ 포스트 수정 (`app/posts/[id]/edit/page.tsx`) - updatePost + 작성자만 접근
+- ✅ 포스트 삭제 (`app/posts/[id]/page.tsx`) - deletePost + confirm() 확인
+- ✅ 프로덕션 빌드 성공 (`npm run build`)
+
+### Supabase 쿼리 패턴
+
+**조회 (Read)**
+```typescript
+const { data, error } = await supabase
+  .from("posts")
+  .select("id, title, content, created_at, user_id")
+  .order("created_at", { ascending: false });
+```
+
+**생성 (Create)**
+```typescript
+const { data, error } = await supabase
+  .from("posts")
+  .insert({ title, content, user_id: user.id })
+  .select()
+  .single();
+```
+
+**수정 (Update)**
+```typescript
+const { error } = await supabase
+  .from("posts")
+  .update({ title, content })
+  .eq("id", id);
+```
+
+**삭제 (Delete)**
+```typescript
+const { error } = await supabase
+  .from("posts")
+  .delete()
+  .eq("id", post.id);
+```
+
+### 보안 전략
+
+- **작성자 UI 분기**: `user?.id === post.user_id` 일 때만 수정/삭제 버튼 표시 (UX 레벨)
+- **실제 보안은 Ch11 RLS에서 구현**: 클라이언트 분기는 보안이 아니며, RLS(Row Level Security)가 데이터베이스 단계에서 실제로 보호함
+- **user_id는 항상 Auth context에서만**: 폼 입력이나 URL 파라미터로 받지 않음
+
+### 에러 처리
+- 쿼리 실패: console.error + 화면에 사용자 친화적 메시지 표시
+- 존재하지 않는 포스트: `notFound()` 호출 (Next.js 404)
+- 권한 없음: 상세 페이지 접근 시 UI 레벨에서 버튼 숨김
 
 - `app/globals.css`: shadcn/ui 테마 변수 정리
   - :root 블록: OKLCh 포맷으로 정밀한 색상 조정 (밝기, 채도, 색상 각각 제어)

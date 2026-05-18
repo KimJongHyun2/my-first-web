@@ -8,9 +8,8 @@
 
 ## Non-Goals (MVP에 포함하지 않음)
 
-- 댓글 기능 (Phase 2)
-- 검색/필터 (Phase 2)
-- 이미지 업로드 (Phase 2)
+- RLS 보안 (Ch11에서 추가)
+- 마이페이지 (Ch11에서 추가)
 
 ## Page Map (페이지 맵)
 
@@ -20,11 +19,12 @@
 |--------|-----|------|------|
 | 홈 | `/` | `app/page.tsx` | 블로그 시작 페이지 |
 | 포스트 목록 | `/posts` | `app/posts/page.tsx` | 포스트 카드 리스트 |
-| 포스트 상세 | `/posts/[id]` | `app/posts/[id]/page.tsx` | 포스트 전문 조회 |
-| 포스트 작성 | `/posts/new` | `app/posts/new/page.tsx` | 포스트 작성 폼 (로그인 필요) |
+| 포스트 상세 | `/posts/[id]` | `app/posts/[id]/page.tsx` | 포스트 전문 조회 + 작성자 수정/삭제 버튼 |
+| 포스트 작성 | `/posts/new` | `app/posts/new/page.tsx` | 포스트 작성 폼 (로그인 필수) |
+| 포스트 수정 | `/posts/[id]/edit` | `app/posts/[id]/edit/page.tsx` | 포스트 수정 폼 (작성자만) |
 | 로그인 | `/login` | `app/login/page.tsx` | 이메일 로그인 |
 | 회원가입 | `/signup` | `app/signup/page.tsx` | 이메일 회원가입 |
-| 마이페이지 | `/mypage` | `app/mypage/page.tsx` | 내 포스트 관리 (로그인 필요) |
+| 마이페이지 | `/mypage` | `app/mypage/page.tsx` | 내 포스트 관리 (로그인 필수) |
 
 ## User Flow (유저 플로우)
 
@@ -38,11 +38,25 @@
 포스트 목록 → "새 글 쓰기" 버튼 클릭
   ↓
   [로그인 상태 확인]
+│                                          │
+│  비밀번호: [________________]           │ ← Input
   - 미로그인 → /login 페이지 리다이렉트 → 로그인 완료 → /posts/new로 자동 복귀
-  - 로그인 완료 → 제목/내용 입력 → 제출 → 포스트 상세 페이지로 이동
 ```
 
-### 3) 마이페이지 확인 (로그인 필요)
+### 3) 글 수정/삭제 (로그인한 작성자만)
+```
+포스트 상세 → [작성자 확인]
+  ↓
+  작성자: [수정] [삭제] 버튼 표시
+  비작성자: 버튼 숨김
+  ↓
+  [수정] → /posts/[id]/edit → 제목/내용 수정 → 저장 → 상세로 복귀
+  [삭제] → confirm() → 삭제 → /posts 목록으로 이동
+```
+- 작성자 판단: `user?.id === post.user_id` (UI 레벨)
+- 실제 보안: Ch11 RLS(Row Level Security)에서 구현
+
+### 4) 마이페이지 확인 (로그인 필수)
 ```
 헤더 → "마이페이지" 메뉴 클릭 → [로그인 확인] → 내 포스트 목록 조회
   ↓
@@ -50,9 +64,6 @@
 ```
 
 ## Component Hierarchy (컴포넌트 구조)
-
-TODO: shadcn/ui 설치 후 추가 예정
-
 - Layout 구조 (Header, Main, Footer)
 - 각 페이지의 주요 컴포넌트
 - shadcn/ui 컴포넌트 조합
@@ -65,6 +76,8 @@ TODO: shadcn/ui 설치 후 추가 예정
 ┌──────────────────────────────────────────┐
 │  Logo      [포스트] [소개]  [로그인]     │ ← Header
 ├──────────────────────────────────────────┤
+│  │ 작성일: 2026-04-29                  ││
+│  │ 본문 미리보기...                    ││
 │                                          │
 │  📝 새 글 쓰기                          │ ← CTA Button
 │                                          │
@@ -98,7 +111,6 @@ TODO: shadcn/ui 설치 후 추가 예정
 ├──────────────────────────────────────────┤
 │                                          │
 │  📄 포스트 제목이 여기 들어갑니다       │ ← 제목
-│  작성일: 2026-04-29  | 작성자: 홍길동  │ ← 메타정보
 │  ─────────────────────────────────────  │
 │                                          │
 │  포스트 본문이 여기에 길게 표시됩니다.  │ ← 본문
@@ -148,12 +160,117 @@ TODO: shadcn/ui 설치 후 추가 예정
 - Main: 제목 + 이메일 Input + 비밀번호 Input + 로그인 버튼 + 회원가입 링크
 - Footer: 저작권
 
+### 4) 포스트 작성 페이지 (/posts/new)
+
+```
+┌──────────────────────────────────────────┐
+│  Logo      [포스트] [소개]  [로그아웃]  │ ← Header (로그인 상태)
+├──────────────────────────────────────────┤
+│                                          │
+│         ✍️ 새 글 쓰기                    │ ← 제목
+│                                          │
+│  제목:                                  │
+│  [________________]                     │ ← Input
+│                                          │
+│  내용:                                  │
+│  [____________________________]          │
+│  [____________________________]          │ ← Textarea
+│  [____________________________]          │
+│                                          │
+│  [     글 남기기     ] [취소]            │ ← Button
+│                                          │
+├──────────────────────────────────────────┤
+│ © 2026 My Blog      RSS   Twitter       │ ← Footer
+└──────────────────────────────────────────┘
+```
+
+**구성 요소**:
+- Header: 로고, 네비게이션 (로그인 상태)
+- Main: 제목 + 제목 Input + 내용 Textarea + 저장/취소 버튼
+- Footer: 저작권
+
+**주요 기능**:
+- useAuth()로 로그인 확인 → 미로그인 시 /login으로 리다이렉트
+- 제목/내용 필수 유효성 검사
+- Supabase insert: `{ title, content, user_id: user.id }`
+- 성공 시 `/posts/[id]`로 이동
+
+### 5) 포스트 수정 페이지 (/posts/[id]/edit)
+
+```
+┌──────────────────────────────────────────┐
+│  Logo      [포스트] [소개]  [로그아웃]  │ ← Header
+├──────────────────────────────────────────┤
+│                                          │
+│         ✏️ 글 수정하기                   │ ← 제목
+│                                          │
+│  제목:                                  │
+│  [기존 제목이 여기 들어갑니다]          │ ← Input (pre-filled)
+│                                          │
+│  내용:                                  │
+│  [기존 내용이 여기에 길게               │
+│   표시됩니다.]                          │ ← Textarea (pre-filled)
+│                                          │
+│  [   수정 저장하기   ] [취소]           │ ← Button
+│                                          │
+├──────────────────────────────────────────┤
+│ © 2026 My Blog      RSS   Twitter       │ ← Footer
+└──────────────────────────────────────────┘
+```
+
+**구성 요소**:
+- Header: 로고, 네비게이션
+- Main: 제목 + 제목 Input(pre-filled) + 내용 Textarea(pre-filled) + 수정/취소 버튼
+- Footer: 저작권
+
+**주요 기능**:
+- useAuth() + 작성자 확인 → 비작성자 시 notFound() 호출
+- 기존 제목/내용 로드 및 화면에 표시
+- Supabase update: `.update({ title, content }).eq("id", id)`
+- 성공 시 `/posts/[id]`로 이동
+
+### 6) 포스트 삭제 (포스트 상세 페이지에서)
+
+**삭제 버튼 표시 (작성자만)**:
+```typescript
+{isAuthor ? (
+  <button onClick={() => handleDelete()}>삭제</button>
+) : null}
+```
+
+**삭제 확인 절차**:
+```typescript
+if (!confirm("정말로 이 게시글을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")) {
+  return;
+}
+```
+
+**삭제 쿼리**:
+```typescript
+const { error } = await supabase
+  .from("posts")
+  .delete()
+  .eq("id", post.id);
+```
+
+**주요 기능**:
+- 작성자만 삭제 버튼 표시 (UI 레벨)
+- confirm() 으로 사용자 재확인
+- Supabase delete with `.eq("id")` 조건
+- 성공 시 `/posts` 목록으로 이동
+
+---
+
+**구성 요소**:
+- Header: 로고, 네비게이션
+- Main: 제목 + 이메일 Input + 비밀번호 Input + 로그인 버튼 + 회원가입 링크
+- Footer: 저작권
+
 ## Copilot Vision 프롬프트 템플릿
 
 종이에 위 와이어프레임을 손그림으로 스케치한 후, **Copilot Chat에 이미지를 첨부하고** 아래 프롬프트를 사용하세요.
 
 ```
-첨부한 손그림 스케치를 Next.js + Tailwind CSS 컴포넌트로 변환해줘.
 
 [조건]
 - App Router 구조 사용 (pages/ 사용 금지)
@@ -292,7 +409,6 @@ app/layout.tsx (Root Layout)
 
 #### 5) 로그인 (/login)
 **컴포넌트**:
-- Card: 로그인 폼
   - Input: 이메일
   - Input: 비밀번호
   - Button: "로그인" (primary)
@@ -303,8 +419,6 @@ app/layout.tsx (Root Layout)
 - Card: 회원가입 폼
   - Input: 이메일
   - Input: 비밀번호
-  - Input: 비밀번호 확인
-  - Input: 이름
   - Button: "회원가입" (primary)
   - Link: "이미 계정이 있으신가요? 로그인" (→ /login)
 
@@ -330,59 +444,47 @@ app/layout.tsx (Root Layout)
 
 ### 7.8.1 테이블 설계 (Supabase PostgreSQL 기준)
 
-#### users 테이블
+#### profiles 테이블
 
 ```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email TEXT UNIQUE NOT NULL,
-  name TEXT NOT NULL,
-  avatar_url TEXT,
-  role TEXT CHECK (role IN ('user', 'admin')) DEFAULT 'user',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+create table profiles (
+  id uuid references auth.users(id) on delete cascade primary key,
+  username text,
+  avatar_url text,
+  role text,
+  created_at timestamptz default now()
 );
 ```
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
-| id | UUID | 사용자 고유 ID (자동 생성) |
-| email | TEXT | 이메일 주소 (로그인용, 중복 불가) |
-| name | TEXT | 사용자 이름 (블로그 글쓴이로 표시) |
-| avatar_url | TEXT | 프로필 이미지 URL (선택) |
-| role | TEXT | 역할 ('user' 또는 'admin') |
-| created_at | TIMESTAMP | 가입 일시 (자동 기록) |
-| updated_at | TIMESTAMP | 마지막 수정 일시 (자동 갱신) |
-
-**역할(role) 설명**:
-- `user`: 일반 사용자 (글 읽기, 글 작성/수정/삭제 자신의 글만)
-- `admin`: 관리자 (모든 기능 + 다른 사용자 글 삭제 가능) [Phase 2]
+| id | uuid | 사용자 고유 ID, `auth.users(id)` 참조 |
+| username | text | 사용자 이름 |
+| avatar_url | text | 프로필 이미지 URL |
+| role | text | 사용자 역할 |
+| created_at | timestamptz | 생성 시각 |
 
 ---
 
 #### posts 테이블
 
 ```sql
-CREATE TABLE posts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  content TEXT NOT NULL,
-  author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+create table posts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references profiles(id) on delete cascade,
+  title text,
+  content text,
+  created_at timestamptz
 );
-
-CREATE INDEX idx_posts_author_id ON posts(author_id);
 ```
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
-| id | UUID | 포스트 고유 ID (자동 생성) |
-| title | TEXT | 포스트 제목 |
-| content | TEXT | 포스트 본문 (마크다운 또는 평문) |
-| author_id | UUID | 작성자 ID (→ users.id 참조) |
-| created_at | TIMESTAMP | 작성 일시 (자동 기록) |
-| updated_at | TIMESTAMP | 마지막 수정 일시 (자동 갱신) |
+| id | uuid | 포스트 고유 ID |
+| user_id | uuid | 작성자 ID, `profiles.id` 참조 |
+| title | text | 포스트 제목 |
+| content | text | 포스트 내용 |
+| created_at | timestamptz | 생성 시각 |
 
 ---
 
@@ -390,11 +492,10 @@ CREATE INDEX idx_posts_author_id ON posts(author_id);
 
 **1:N 관계** (One-to-Many)
 ```
-users (1) ─── posts (N)
+profiles (1) ─── posts (N)
   │
-  └─ 한 명의 사용자(users)는 여러 개의 글(posts)을 작성할 수 있다
-  └─ posts.author_id는 users.id를 참조
-  └─ 사용자 삭제 시 해당 글도 함께 삭제 (CASCADE)
+  └─ 한 명의 사용자(profiles)는 여러 개의 글(posts)을 작성할 수 있다
+  └─ posts.user_id는 profiles.id를 참조
 ```
 
 ---
@@ -420,7 +521,7 @@ users (1) ─── posts (N)
   ↓
 Supabase Auth에 회원가입 (supabase.auth.signUp)
   ↓
-users 테이블에 프로필 정보 저장
+  profiles 테이블에 프로필 정보 저장
   ↓
 자동 로그인 또는 로그인 페이지로 리다이렉트
 ```

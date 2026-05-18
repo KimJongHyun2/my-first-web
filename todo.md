@@ -21,18 +21,25 @@
 
 ## 2단계: 핵심 기능 (Ch9~10)
 
-- [x] 포스트 목록 페이지
-- [x] 포스트 상세 페이지
+### Ch9: Auth ✓
 - [x] Auth Context 생성 (contexts/AuthContext.tsx)
 - [x] 로그인 페이지 (app/login/page.tsx)
 - [x] 회원가입 페이지 (app/signup/page.tsx)
 - [x] Middleware 설정 (middleware.ts)
 - [x] 보호 라우트 구현
-- [ ] 포스트 작성 (CRUD)
+
+### Ch10: CRUD
+- [x] lib/posts.ts: createPost, readPosts, readPostById, updatePost, deletePost
+- [x] 포스트 목록 페이지 (readPosts)
+- [x] 포스트 상세 페이지 (readPostById + 작성자 버튼)
+- [x] 포스트 작성 페이지 (createPost)
+- [x] 포스트 수정 페이지 (updatePost)
+- [x] 포스트 삭제 기능 (deletePost + Dialog 확인)
+- [x] 빌드/배포 검증 (npm run build, 민감한 정보 노출 확인)
 
 ## 3단계: 고급 기능 (Ch11~12)
 
 - [ ] 마이페이지
 - [ ] 댓글 기능
 
-## 진행률: 23/26 (88%)
+## 진행률: 2단계 완료 (26/29) ✨

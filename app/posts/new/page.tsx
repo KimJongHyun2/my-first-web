@@ -1,27 +1,70 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 export default function NewPostPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [titleError, setTitleError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/login?redirect=/posts/new");
+    }
+  }, [loading, router, user]);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!user) {
+      router.replace("/login?redirect=/posts/new");
+      return;
+    }
 
     if (!title.trim()) {
       setTitleError(true);
+      setErrorMessage("제목을 입력해주세요.");
       alert("제목을 입력해주세요.");
       return;
     }
 
     setTitleError(false);
-    alert("저장되었습니다");
-    router.push("/posts");
+
+    const { data, error } = await supabase
+      .from("posts")
+      .insert({
+        title: title.trim(),
+        content: content.trim(),
+        user_id: user.id,
+      })
+      .select("id")
+      .single();
+
+    if (error || !data) {
+      console.error("Failed to create post:", error);
+      setErrorMessage("게시글을 저장하지 못했습니다.");
+      return;
+    }
+
+    setErrorMessage(null);
+    router.push(`/posts/${data.id}`);
   };
+
+  if (loading) {
+    return (
+      <section className="apple-card mx-auto max-w-3xl p-6 sm:p-8 lg:p-10">
+        <p className="text-sm text-slate-600">불러오는 중...</p>
+      </section>
+    );
+  }
 
   return (
     <section className="apple-card mx-auto max-w-3xl space-y-8 p-6 sm:p-8 lg:p-10">
@@ -68,6 +111,8 @@ export default function NewPostPage() {
             required
           />
         </div>
+
+        {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <button

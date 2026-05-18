@@ -3,15 +3,15 @@ create table profiles (
   id uuid references auth.users(id) on delete cascade primary key,
   username text,
   avatar_url text,
-  role text not null default 'user' check (role in ('user', 'counselor')),
+  role text,
   created_at timestamptz default now()
 );
 
 -- posts: 블로그 글
 create table posts (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references profiles(id) on delete cascade not null,
-  title text not null,
-  content text not null,
-  created_at timestamptz default now()
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  title text,
+  content text,
+  created_at timestamptz
 );

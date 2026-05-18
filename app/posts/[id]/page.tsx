@@ -1,46 +1,148 @@
-import Link from "next/link";
-import { posts } from "@/lib/posts";
+"use client";
 
-type PostDetailPageProps = {
-  params: Promise<{ id: string }>;
+import Link from "next/link";
+import { useRouter, useParams, notFound } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { createClient } from "@/lib/supabase/client";
+
+type PostRow = {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  user_id: string;
 };
 
-export default async function PostDetailPage({ params }: PostDetailPageProps) {
-  const { id } = await params;
-  const postId = Number(id);
-  const post = posts.find((item) => item.id === postId);
+export default function PostDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
+  const router = useRouter();
+  const { user } = useAuth();
+  const supabase = createClient();
 
-  if (!post) {
+  const [post, setPost] = useState<PostRow | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const { data, error: fetchError } = await supabase
+          .from("posts")
+          .select("id, title, content, created_at, user_id")
+          .eq("id", id)
+          .maybeSingle<PostRow>();
+
+        if (fetchError || !data) {
+          notFound();
+        }
+
+        setPost(data);
+      } catch (err) {
+        setError("게시글을 불러올 수 없습니다.");
+        console.error("Failed to fetch post:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPost();
+  }, [id, supabase]);
+
+  const handleDelete = async () => {
+    if (!post || !user || user.id !== post.user_id) {
+      setDeleteError("삭제 권한이 없습니다.");
+      return;
+    }
+
+    // 사용자 확인 (삭제 전)
+    if (!confirm("정말로 이 게시글을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const { error: deleteErr } = await supabase
+        .from("posts")
+        .delete()
+        .eq("id", post.id);
+
+      if (deleteErr) {
+        setDeleteError("게시글 삭제에 실패했습니다.");
+        console.error("Failed to delete post:", deleteErr);
+        return;
+      }
+
+      router.push("/posts");
+    } catch (err) {
+      setDeleteError("게시글 삭제 중 오류가 발생했습니다.");
+      console.error("Delete error:", err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (loading) {
     return (
-      <section className="apple-card space-y-4 p-8">
-        <p className="text-sm font-medium uppercase tracking-[0.18em] text-slate-500">Note</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">게시글 상세</h1>
-        <p className="text-slate-600">아직 내용을 불러오지 못했어요.</p>
-        <Link
-          href="/posts"
-          className="inline-flex rounded-full border border-slate-200 bg-white/80 px-5 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-        >
-          목록으로
-        </Link>
+      <section className="apple-card mx-auto max-w-3xl p-6 sm:p-8 lg:p-10">
+        <p className="text-sm text-slate-600">불러오는 중...</p>
       </section>
     );
   }
+
+  if (error || !post) {
+    return (
+      <section className="apple-card mx-auto max-w-3xl p-6 sm:p-8 lg:p-10">
+        <p className="text-sm text-red-600">{error || "게시글을 찾을 수 없습니다."}</p>
+      </section>
+    );
+  }
+
+  // 현재 로그인 사용자가 작성자인지 확인 (UI 레벨)
+  // 실제 보안은 Ch11의 RLS(Row Level Security)에서 처리
+  const isAuthor = user?.id === post.user_id;
 
   return (
     <article className="apple-card space-y-8 p-8 sm:p-10">
       <header className="space-y-4">
         <div className="inline-flex rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-medium tracking-[0.18em] text-slate-500">
-          NOTE
+          POST
         </div>
         <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-balance text-slate-950 sm:text-4xl">
           {post.title}
         </h1>
         <p className="text-sm text-slate-500">
-          {post.author} · {post.date}
+          {new Date(post.created_at).toLocaleDateString("ko-KR")} · 작성자 ID: {post.user_id}
         </p>
       </header>
 
       <p className="max-w-3xl text-base leading-8 text-slate-600">{post.content}</p>
+
+      {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
+
+      {isAuthor ? (
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href={`/posts/${post.id}/edit`}
+            className="inline-flex rounded-full border border-slate-200 bg-white/80 px-5 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+          >
+            수정
+          </Link>
+          <button
+            type="button"
+            onClick={() => handleDelete()}
+            className="inline-flex rounded-full border border-red-200 bg-red-50 px-5 py-3 text-sm font-medium text-red-600 transition hover:bg-red-100"
+            disabled={isDeleting}
+          >
+            {isDeleting ? "삭제중..." : "삭제"}
+          </button>
+        </div>
+      ) : null}
 
       <Link
         href="/posts"

@@ -774,24 +774,23 @@ app/globals.css의 shadcn/ui 테마 변수를 블로그에 어울리게 정리�
 블로그 앱의 데이터 모델:
 
 ```
-users (사용자)
-├── id: UUID (자동 생성)
-├── email: 이메일
-├── name: 이름
-├── avatar_url: 프로필 이미지 URL
-└── role: 역할 ('user', 'admin')
+profiles (사용자)
+├── id: UUID (auth.users(id) 참조)
+├── username: text
+├── avatar_url: text
+└── role: text
 
 posts (포스트)
-├── id: UUID (자동 생성)
-├── title: 제목
-├── content: 본문
-├── author_id: 작성자 (→ users.id)
-└── created_at: 작성일시 (자동 생성)
+├── id: uuid
+├── user_id: uuid (→ profiles.id)
+├── title: text
+├── content: text
+└── created_at: timestamptz
 ```
 
-대부분의 웹앱은 **사용자 역할(role)**이 필요하다. 일반 사용자와 관리자(admin)처럼 역할에 따라 접근 가능한 페이지와 수행 가능한 작업이 달라진다. `role` 컬럼은 Ch9(인증)에서 프로필 조회에 활용하고, Ch11(RLS)에서 역할 기반 접근 제어에 사용한다.
+대부분의 웹앱은 **사용자 역할(role)**이 필요하다. `role` 컬럼은 Ch9(인증)에서 프로필 조회에 활용하고, Ch11(RLS)에서 역할 기반 접근 제어에 사용한다.
 
-**테이블 관계**: 한 명의 사용자(users)가 여러 개의 블로그 글(posts)을 작성할 수 있다 → **1:N 관계**. `posts.author_id`가 `users.id`를 참조한다.
+**테이블 관계**: 한 명의 사용자(profiles)가 여러 개의 블로그 글(posts)을 작성할 수 있다 → **1:N 관계**. `posts.user_id`가 `profiles.id`를 참조한다.
 
 ### 7.8.2 [ARCHITECTURE.md](http://architecture.md/) 완성 — 컴포넌트 계층과 데이터 모델 추가
 
