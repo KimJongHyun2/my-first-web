@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
 
@@ -14,12 +14,22 @@ export default function NewPostPage() {
   const [content, setContent] = useState("");
   const [titleError, setTitleError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/login?redirect=/posts/new");
     }
   }, [loading, router, user]);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -56,7 +66,11 @@ export default function NewPostPage() {
     }
 
     setErrorMessage(null);
-    router.push(`/posts/${data.id}`);
+    setSuccessMessage("성공적으로 업로드 되었습니다.");
+
+    redirectTimerRef.current = setTimeout(() => {
+      router.push(`/posts/${data.id}`);
+    }, 1200);
   };
 
   if (loading) {
@@ -114,6 +128,12 @@ export default function NewPostPage() {
         </div>
 
         {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
+
+        {successMessage ? (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 shadow-sm">
+            {successMessage}
+          </div>
+        ) : null}
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
