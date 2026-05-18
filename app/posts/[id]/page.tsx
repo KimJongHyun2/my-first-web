@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter, useParams, notFound } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 
 type PostRow = {
   id: string;
@@ -26,6 +27,8 @@ export default function PostDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -51,6 +54,22 @@ export default function PostDetailPage() {
 
     fetchPost();
   }, [id, supabase]);
+
+  // 메뉴 외부 클릭 감지
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [isMenuOpen]);
 
   const handleDelete = async () => {
     if (!post || !user || user.id !== post.user_id) {
@@ -108,7 +127,7 @@ export default function PostDetailPage() {
   const isAuthor = user?.id === post.user_id;
 
   return (
-    <article className="apple-card space-y-8 p-8 sm:p-10">
+    <article className="apple-card space-y-8 p-8 sm:p-10 relative">
       <header className="space-y-4">
         <div className="inline-flex rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-medium tracking-[0.18em] text-slate-500">
           POST
@@ -126,21 +145,35 @@ export default function PostDetailPage() {
       {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
 
       {isAuthor ? (
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href={`/posts/${post.id}/edit`}
-            className="inline-flex rounded-full border border-slate-200 bg-white/80 px-5 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-          >
-            수정
-          </Link>
+        <div ref={menuRef} className="absolute top-8 right-8">
           <button
-            type="button"
-            onClick={() => handleDelete()}
-            className="inline-flex rounded-full border border-red-200 bg-red-50 px-5 py-3 text-sm font-medium text-red-600 transition hover:bg-red-100"
-            disabled={isDeleting}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="rounded-full border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
           >
-            {isDeleting ? "삭제중..." : "삭제"}
+            ⋮
           </button>
+
+          {isMenuOpen && (
+            <div className="absolute right-0 mt-2 w-32 rounded-lg border border-slate-200 bg-white shadow-lg z-10">
+              <Link
+                href={`/posts/${post.id}/edit`}
+                className="block px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-t-lg"
+              >
+                수정
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  handleDelete();
+                }}
+                disabled={isDeleting}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg transition"
+              >
+                {isDeleting ? "삭제중..." : "삭제"}
+              </button>
+            </div>
+          )}
         </div>
       ) : null}
 

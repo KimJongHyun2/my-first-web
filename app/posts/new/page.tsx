@@ -44,6 +44,7 @@ export default function NewPostPage() {
         title: title.trim(),
         content: content.trim(),
         user_id: user.id,
+        created_at: new Date().toISOString(),
       })
       .select("id")
       .single();
