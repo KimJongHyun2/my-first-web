@@ -120,7 +120,7 @@ export default function NewPostPage() {
             type="submit"
             className="rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800"
           >
-            글 남기기
+            글 업로드
           </button>
           <button
             type="button"

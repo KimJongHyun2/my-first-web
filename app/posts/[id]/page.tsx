@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useParams, notFound } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
+import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -136,7 +137,7 @@ export default function PostDetailPage() {
           {post.title}
         </h1>
         <p className="text-sm text-slate-500">
-          {new Date(post.created_at).toLocaleDateString("ko-KR")} · 작성자 ID: {post.user_id}
+          {formatDate(post.created_at)} · 작성자 ID: {post.user_id}
         </p>
       </header>
 

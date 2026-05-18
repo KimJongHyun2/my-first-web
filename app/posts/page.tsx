@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { formatDate } from "@/lib/utils";
 
 type PostRow = {
   id: string;
@@ -73,9 +74,7 @@ export default function PostsPage() {
                   <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500">
                     Post
                   </span>
-                  <span className="text-xs text-slate-400">
-                    {new Date(post.created_at).toLocaleDateString("ko-KR")}
-                  </span>
+                  <span className="text-xs text-slate-400">{formatDate(post.created_at)}</span>
                 </div>
                 <h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-950 transition group-hover:text-slate-700">
                   {post.title}
