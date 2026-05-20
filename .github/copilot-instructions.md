@@ -63,3 +63,54 @@
 - 항상 "UX 레벨" 또는 "UI 레벨"이라고 명시
 - "실제 보안은 Ch11 RLS에서 처리"라고 주석으로 남길 것
 
+## Supabase RLS (Ch11)
+
+### RLS 정책 규칙
+
+- 마이그레이션 파일: `supabase/migrations/<timestamp>_add_posts_rls.sql`
+- CLI 명령: `npx supabase migration new add_posts_rls` → `npx supabase db push`
+- SQL Editor는 사용하지 않음 (Git 이력 추적을 위해 CLI 마이그레이션만 사용)
+
+### posts 테이블 정책 (4개)
+
+**1) SELECT — 누구나 읽기**
+```sql
+CREATE POLICY "Authenticated and anonymous users can read posts"
+ON public.posts FOR SELECT
+USING (true);
+```
+
+**2) INSERT — 로그인 사용자만, user_id는 본인**
+```sql
+CREATE POLICY "Authenticated users can create posts"
+ON public.posts FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+```
+
+**3) UPDATE — 작성자만 수정 (수정 후에도 user_id 유지)**
+```sql
+CREATE POLICY "Users can update their own posts"
+ON public.posts FOR UPDATE
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+```
+
+**4) DELETE — 작성자만 삭제**
+```sql
+CREATE POLICY "Users can delete their own posts"
+ON public.posts FOR DELETE
+USING (auth.uid() = user_id);
+```
+
+### 금지사항 (Ch11)
+
+**임의 변경 금지:**
+- ❌ RLS 정책을 SQL Editor에서만 적용 (반드시 CLI 마이그레이션 사용)
+- ❌ `USING` 또는 `WITH CHECK` 조건 생략
+- ❌ INSERT/UPDATE에서 `WITH CHECK (auth.uid() = user_id)` 누락 (다른 user_id로 저장 가능)
+- ❌ DELETE에서 `USING (auth.uid() = user_id)` 누락
+
+**보안 설명 금지:**
+- RLS 정책을 "보안"이 아니라 **"데이터베이스 강제"** 또는 **"최종 권한 검사"**라고 표현
+- UI 분기는 "UX 레벨", RLS는 "DB 레벨 보안"이라고 명확히 구분
+

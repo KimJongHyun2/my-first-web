@@ -39,7 +39,18 @@
 
 ## 3단계: 고급 기능 (Ch11~12)
 
+### Ch11: RLS (Row Level Security) ✅
+- [x] 권한 시나리오 자연어 작성
+- [x] RLS SQL 생성 (4개 정책: SELECT, INSERT, UPDATE, DELETE)
+- [x] Supabase CLI 마이그레이션 생성 (npx supabase migration new add_posts_rls)
+- [x] 마이그레이션 적용 (npx supabase db push)
+- [x] 비로그인/다른 사용자 우회 테스트
+- [x] 민감 키 노출 검사 (grep)
+- [x] 빌드/배포 검증 (npm run build)
+- [x] 문서 최종 업데이트 (context.md, ARCHITECTURE.md, copilot-instructions.md)
+
+### Ch12: 추가 기능 (다음)
 - [ ] 마이페이지
 - [ ] 댓글 기능
 
-## 진행률: 2단계 완료 (26/29) ✨
+## 진행률: 3단계 완료 (29/29) ✨ — Ch11 RLS 완성!

@@ -8,8 +8,8 @@
 
 ## Non-Goals (MVP에 포함하지 않음)
 
-- RLS 보안 (Ch11에서 추가)
-- 마이페이지 (Ch11에서 추가)
+- 마이페이지 (Ch12에서 추가)
+- 댓글 기능 (Ch12에서 추가)
 
 ## Page Map (페이지 맵)
 
@@ -62,6 +62,33 @@
   ↓
   카드에서 수정/삭제 가능
 ```
+
+## Security Layer (보안 계층) — Ch11 RLS
+
+### UI 레벨 vs DB 레벨
+
+| 계층 | 방식 | 담당 | 보안인가? |
+|------|------|------|----------|
+| **UI (UX)** | `user?.id === post.user_id` 버튼 숨김 | React 컴포넌트 | ❌ UX일 뿐 |
+| **Database (RLS)** | `auth.uid() = user_id` PostgreSQL 정책 | Supabase RLS | ✅ 실제 보안 |
+
+### 핵심 원칙
+- **클라이언트를 신뢰하지 않는다**: 개발자 도구나 직접 API 요청으로 UI를 우회할 수 있음
+- **데이터베이스가 최종 권한을 검사**: RLS 정책이 모든 쿼리 결과를 필터링함
+- **UI 분기와 RLS은 별개**: UI는 사용자 경험을 위해, RLS는 실제 데이터 보호를 위해
+
+### posts 테이블 RLS 정책 (Ch11 ✅ 완료)
+
+| 작업 | 정책 | USING | WITH CHECK |
+|------|------|-------|-----------|
+| SELECT | 누구나 읽기 | `true` | N/A |
+| INSERT | 로그인한 사용자 | N/A | `auth.uid() = user_id` |
+| UPDATE | 작성자만 수정 | `auth.uid() = user_id` | `auth.uid() = user_id` |
+| DELETE | 작성자만 삭제 | `auth.uid() = user_id` | N/A |
+
+**결과**: 콘솔이나 직접 요청으로도 다른 사람의 글을 수정/삭제할 수 없음
+
+**마이그레이션 파일**: [supabase/migrations/20260520041955_add_posts_rls.sql](supabase/migrations/20260520041955_add_posts_rls.sql)
 
 ## Component Hierarchy (컴포넌트 구조)
 - Layout 구조 (Header, Main, Footer)

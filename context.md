@@ -2,10 +2,10 @@
 
 ## 현재 상태
 
-- 마지막 작업일: 2026-05-18
+- 마지막 작업일: 2026-05-20
 - 완료된 작업: **Ch7~10 완전 완료** — 디자인, Supabase 연결, Auth 구현, Posts CRUD 완성
-- 현재 작업: 문서 정비 중
-- 다음: Ch11 RLS 보안 구현
+- 현재 작업: **Ch11 RLS 보안 구현** — 문서 정비 완료
+- 다음: SQL 마이그레이션 작성 및 적용
 
 ## 기술 결정 사항
 
@@ -123,6 +123,61 @@ const { error } = await supabase
 - 쿼리 실패: console.error + 화면에 사용자 친화적 메시지 표시
 - 존재하지 않는 포스트: `notFound()` 호출 (Next.js 404)
 - 권한 없음: 상세 페이지 접근 시 UI 레벨에서 버튼 숨김
+
+## Supabase Row Level Security (Ch11)
+
+### RLS 활성화
+- posts 테이블에 RLS 정책 적용 — 데이터베이스 단계에서 권한 강제
+- 마이그레이션 파일: `supabase/migrations/<timestamp>_add_posts_rls.sql`
+- CLI 명령어: `npx supabase migration new add_posts_rls` → `npx supabase db push`
+
+### 적용 정책
+
+| 작업 | 권한 | USING | WITH CHECK |
+|------|------|-------|------------|
+| SELECT | 누구나 읽기 | `true` | N/A |
+| INSERT | 로그인 사용자만 | N/A | `auth.uid() = user_id` |
+| UPDATE | 작성자만 수정 | `auth.uid() = user_id` | `auth.uid() = user_id` |
+| DELETE | 작성자만 삭제 | `auth.uid() = user_id` | N/A |
+
+### 테스트 시나리오 (완료 ✅)
+
+**성공해야 하는 경우:**
+- ① 비로그인 사용자가 게시글 목록/상세 조회 가능 ✅
+- ② 로그인 사용자가 본인 글 작성 가능 ✅
+- ③ 로그인 사용자가 본인 글 수정/삭제 가능 ✅
+
+**실패해야 하는 경우 (RLS로 차단):**
+- ④ 다른 사용자가 글 수정 시도 → 데이터 변경 없음 (error: null, data: []) ✅
+- ⑤ 다른 사용자가 글 삭제 시도 → 데이터 삭제 없음 (error: null, data: []) ✅
+
+### 검증 결과
+
+**마이그레이션 파일:** `supabase/migrations/20260520041955_add_posts_rls.sql` ✅
+- 파일 위치: [supabase/migrations/20260520041955_add_posts_rls.sql](supabase/migrations/20260520041955_add_posts_rls.sql)
+- 상태: Git 언트랙(untracked) — 원하면 커밋 가능
+
+**빌드 검증:** `npm run build` 성공 ✅
+
+**민감 키 노출:** 검사 완료 ✅
+- 스캔 항목: app/, lib/, components/, contexts/ 내 .ts, .tsx, .js
+- 패턴: SUPABASE_SERVICE_ROLE, service_role, sb_secret_, sbp_, sk-
+- 결과: 일치 항목 없음 (노출 없음)
+
+**콘솔 테스트 결과:**
+- 사용자 B(fab5e9c6-d44c-4a55-81d2-1eb8b71e8a7c) 로그인 ✅
+- 사용자 A 글(65e2cba5-f293-42ce-bc2c-d97ff0103ead) 수정 시도 → RLS 차단 (data: []) ✅
+- 사용자 A 글 삭제 시도 → RLS 차단 (data: []) ✅
+- ④ 다른 사용자의 글을 수정하려고 시도 → 실패
+- ⑤ 다른 사용자의 글을 삭제하려고 시도 → 실패
+- ⑥ 콘솔/API로 직접 요청해도 RLS가 차단
+
+### 핵심 원칙
+- **클라이언트를 신뢰하지 않는다**: UI 분기(버튼 숨김)는 UX일 뿐, 실제 보안은 RLS가 담당
+- **`auth.uid()`**: Supabase가 제공하는 현재 로그인 사용자의 ID (신뢰할 수 있음)
+- **`USING`**: 기존 행을 읽거나 수정/삭제할 수 있는지 검사
+- **`WITH CHECK`**: 새로 생성되거나 변경된 결과가 허용되는지 검사
+- **마이그레이션으로 기록**: SQL Editor가 아닌 CLI 마이그레이션으로 정책을 코드에 남김
 
 - `app/globals.css`: shadcn/ui 테마 변수 정리
   - :root 블록: OKLCh 포맷으로 정밀한 색상 조정 (밝기, 채도, 색상 각각 제어)
