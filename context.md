@@ -37,6 +37,22 @@
 - `app/posts/[id]/edit/page.tsx` (Ch10): updatePost 구현, 작성자 확인
 - `app/posts/new/page.tsx` (Ch10): createPost 구현, Auth 체크
 
+## Ch12: 에러 처리 및 UX 개선 (최근 작업)
+
+- `app/error.tsx`: 앱 전체 에러 화면 (reset 지원)
+- `app/loading.tsx`: 앱 전체 로딩 스켈레톤
+- `app/posts/loading.tsx`: 게시글 목록 로딩 스켈레톤
+- `app/posts/[id]/loading.tsx`: 상세 로딩 스켈레톤
+- `app/posts/new/page.tsx`: 클라이언트 유효성 검사 추가 (제목 최소 2자, 내용 최소 10자, 제출 중 비활성화)
+- `lib/error-message.ts`: Supabase/네트워크 에러를 사용자 친화적 메시지로 변환하는 유틸
+- `components/LoginForm.tsx`, `components/SignupForm.tsx`: 위 유틸 적용 (개발자용 로그는 console.error로 유지)
+
+에러 메시지 변환 규칙:
+- 42501 또는 RLS 관련 오류 → "이 작업을 수행할 권한이 없습니다."
+- "Failed to fetch" → "인터넷 연결을 확인해주세요."
+- not found 계열 → "요청한 내용을 찾을 수 없습니다."
+- 기본값 → "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+
 ## 해결된 이슈
 
 - (Ch7) shadcn/ui Button variant가 디자인 토큰과 불일치 → globals.css의 --primary 수정으로 해결

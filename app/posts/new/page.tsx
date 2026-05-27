@@ -12,8 +12,10 @@ export default function NewPostPage() {
   const { user, loading } = useAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [titleError, setTitleError] = useState(false);
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [contentError, setContentError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -39,15 +41,32 @@ export default function NewPostPage() {
       return;
     }
 
-    if (!title.trim()) {
-      setTitleError(true);
-      setErrorMessage("제목을 입력해주세요.");
-      alert("제목을 입력해주세요.");
+    // 클라이언트 유효성 검사 (UX 레벨)
+    const trimmedTitle = title.trim();
+    const trimmedContent = content.trim();
+
+    let hasError = false;
+
+    if (trimmedTitle.length < 2) {
+      setTitleError("제목은 최소 2자 이상 입력해주세요.");
+      hasError = true;
+    } else {
+      setTitleError(null);
+    }
+
+    if (trimmedContent.length < 10) {
+      setContentError("내용을 10자 이상 입력해주세요.");
+      hasError = true;
+    } else {
+      setContentError(null);
+    }
+
+    if (hasError) {
+      setErrorMessage("입력값을 확인해주세요.");
       return;
     }
 
-    setTitleError(false);
-
+    setIsSubmitting(true);
     const { data, error } = await supabase
       .from("posts")
       .insert({
@@ -61,16 +80,17 @@ export default function NewPostPage() {
 
     if (error || !data) {
       console.error("Failed to create post:", error);
-      setErrorMessage("게시글을 저장하지 못했습니다.");
+      setErrorMessage("게시글을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.");
+      setIsSubmitting(false);
       return;
     }
 
     setErrorMessage(null);
     setSuccessMessage("성공적으로 업로드 되었습니다.");
-
     redirectTimerRef.current = setTimeout(() => {
       router.push(`/posts/${data.id}`);
     }, 1200);
+    setIsSubmitting(false);
   };
 
   if (loading) {
@@ -101,7 +121,7 @@ export default function NewPostPage() {
             onChange={(event) => {
               setTitle(event.target.value);
               if (event.target.value.trim()) {
-                setTitleError(false);
+                setTitleError(null);
               }
             }}
             className={`h-12 w-full rounded-full border bg-white/85 px-4 outline-none shadow-[0_8px_30px_rgba(15,23,42,0.05)] transition focus:border-slate-300 focus:ring-4 focus:ring-slate-100 ${
@@ -110,7 +130,7 @@ export default function NewPostPage() {
             placeholder="제목을 입력하세요"
             required
           />
-          {titleError ? <p className="text-sm text-red-600">제목을 한 줄만 먼저 적어주세요.</p> : null}
+          {titleError ? <p className="text-sm text-red-600">{titleError}</p> : null}
         </div>
 
         <div className="space-y-2">
@@ -120,11 +140,17 @@ export default function NewPostPage() {
           <textarea
             id="content"
             value={content}
-            onChange={(event) => setContent(event.target.value)}
+            onChange={(event) => {
+              setContent(event.target.value);
+              if (event.target.value.trim()) {
+                setContentError(null);
+              }
+            }}
             className="min-h-56 w-full rounded-[1.75rem] border border-gray-300 bg-white/85 px-4 py-3 outline-none shadow-[0_8px_30px_rgba(15,23,42,0.05)] transition focus:border-slate-300 focus:ring-4 focus:ring-slate-100"
             placeholder="내용을 입력하세요"
             required
           />
+          {contentError ? <p className="text-sm text-red-600">{contentError}</p> : null}
         </div>
 
         {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
@@ -138,9 +164,14 @@ export default function NewPostPage() {
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             type="submit"
-            className="rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800"
+            disabled={isSubmitting}
+            className={`rounded-full px-5 py-3 text-sm font-medium shadow-lg transition ${
+              isSubmitting
+                ? "bg-slate-400 text-white cursor-not-allowed shadow-none"
+                : "bg-slate-900 text-white shadow-slate-900/10 hover:bg-slate-800"
+            }`}
           >
-            글 업로드
+            {isSubmitting ? "업로드 중..." : "글 업로드"}
           </button>
           <button
             type="button"

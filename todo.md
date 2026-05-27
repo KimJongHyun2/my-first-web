@@ -50,6 +50,10 @@
 - [x] 문서 최종 업데이트 (context.md, ARCHITECTURE.md, copilot-instructions.md)
 
 ### Ch12: 추가 기능 (다음)
+- [x] 에러 처리 및 로딩 UX 추가 (`app/error.tsx`, `app/loading.tsx`)
+- [x] 게시글 로딩 스켈레톤 추가 (`app/posts/loading.tsx`, `app/posts/[id]/loading.tsx`)
+- [x] 게시글 작성 폼 클라이언트 검증 추가 (제목 최소 2자, 내용 최소 10자)
+- [x] 에러 메시지 변환 유틸 추가 (`lib/error-message.ts`) 및 로그인/회원가입에 적용
 - [ ] 마이페이지
 - [ ] 댓글 기능
 

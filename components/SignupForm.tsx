@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { signUpWithEmail } from '@/lib/auth';
+import toUserFriendlyMessage from '@/lib/error-message';
 
 export default function SignupForm({ redirectTarget }: { redirectTarget: string }) {
   const router = useRouter();
@@ -45,7 +46,8 @@ export default function SignupForm({ redirectTarget }: { redirectTarget: string 
     const { error: authError } = await signUpWithEmail(email, password, name);
 
     if (authError) {
-      setError(authError);
+      console.error('Signup error:', authError);
+      setError(toUserFriendlyMessage(authError));
       setLoading(false);
       return;
     }

@@ -95,6 +95,16 @@
 - 각 페이지의 주요 컴포넌트
 - shadcn/ui 컴포넌트 조합
 
+## Loading / Error UX and Validation (Ch12)
+
+- Global error screen: `app/error.tsx` — 렌더링 실패 시 사용자 친화적 안내와 `reset()` 버튼 제공
+- Global loading: `app/loading.tsx` — 앱 전역 로딩 스켈레톤
+- Posts list/detail loading skeletons: `app/posts/loading.tsx`, `app/posts/[id]/loading.tsx`
+- Client-side validation: `app/posts/new/page.tsx` — 제목 최소 2자, 내용 최소 10자, 제출 중 버튼 비활성화
+- Error message util: `lib/error-message.ts` — Supabase/네트워크 에러를 사용자용 문장으로 변환
+
+이 UX 개선은 레이아웃 흔들림 방지(로딩 스켈레톤), 사용자 친화적 에러 안내, 그리고 폼 제출 전 빠른 피드백 제공을 목표로 합니다.
+
 ## Wireframe Sketches (와이어프레임)
 
 ### 1) 포스트 목록 페이지 (/posts)

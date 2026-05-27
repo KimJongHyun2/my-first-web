@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { signInWithEmail } from '@/lib/auth';
+import toUserFriendlyMessage from '@/lib/error-message';
 
 export default function LoginForm({ redirectTarget }: { redirectTarget: string }) {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function LoginForm({ redirectTarget }: { redirectTarget: string }
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const isConnectionError = error.includes('Supabase 서버에 연결할 수 없습니다');
+  const isConnectionError = error.includes('인터넷 연결') || error.includes('Supabase 서버에 연결할 수 없습니다');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +27,8 @@ export default function LoginForm({ redirectTarget }: { redirectTarget: string }
     const { error: authError } = await signInWithEmail(email, password);
 
     if (authError) {
-      setError(authError);
+      console.error('Login error:', authError);
+      setError(toUserFriendlyMessage(authError));
       setLoading(false);
       return;
     }
