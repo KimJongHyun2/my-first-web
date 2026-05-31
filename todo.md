@@ -49,7 +49,7 @@
 - [x] 빌드/배포 검증 (npm run build)
 - [x] 문서 최종 업데이트 (context.md, ARCHITECTURE.md, copilot-instructions.md)
 
-### Ch12: 추가 기능 (다음)
+### Ch12: 추가 기능 (완료)
 - [x] 에러 처리 및 로딩 UX 추가 (`app/error.tsx`, `app/loading.tsx`)
 - [x] 게시글 로딩 스켈레톤 추가 (`app/posts/loading.tsx`, `app/posts/[id]/loading.tsx`)
 - [x] 게시글 작성 폼 클라이언트 검증 추가 (제목 최소 2자, 내용 최소 10자)
@@ -57,4 +57,12 @@
 - [ ] 마이페이지
 - [ ] 댓글 기능
 
-## 진행률: 3단계 완료 (29/29) ✨ — Ch11 RLS 완성!
+## 4단계: AI 결과물 검증 (Ch13)
+
+- [x] Playwright E2E 테스트 2개 작성
+- [x] 로컬 E2E 실행 및 수정
+- [x] 코드리뷰 관점 점검 및 수정
+- [x] Vercel 배포 URL 검증
+- [x] 최종 검증 보고서 작성
+
+## 진행률: 4단계 완료 — Ch13 검증 완료!

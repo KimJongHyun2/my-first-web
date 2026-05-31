@@ -53,9 +53,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    // cleanup: 리스너 제거
+    // cleanup: 리스너 제거 (안전하게 호출)
     return () => {
-      data.subscription.unsubscribe();
+      try {
+        if (data && (data as any).subscription && typeof (data as any).subscription.unsubscribe === 'function') {
+          (data as any).subscription.unsubscribe();
+        }
+      } catch (e) {
+        console.error('Failed to unsubscribe auth listener', e);
+      }
     };
   }, [supabase]);
 

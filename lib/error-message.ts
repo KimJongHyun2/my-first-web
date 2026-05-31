@@ -22,8 +22,9 @@ export function toUserFriendlyMessage(err: UnknownError): string {
       return "요청한 내용을 찾을 수 없습니다.";
     }
 
-    // 마지막으로 문자열으로 반환 가능한 메시지가 있으면 기본 안내로 사용
-    return message || "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+    // 로그에는 상세 메시지 출력, 사용자에게는 일반화된 메시지 보이기
+    console.error('Detailed supabase error:', message);
+    return "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
   }
 
   if (typeof err === "string") {
@@ -41,7 +42,8 @@ export function toUserFriendlyMessage(err: UnknownError): string {
       return "요청한 내용을 찾을 수 없습니다.";
     }
 
-    return message;
+    console.error('Detailed error:', message);
+    return "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
   }
 
   return "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";

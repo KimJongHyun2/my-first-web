@@ -2,10 +2,10 @@
 
 ## 현재 상태
 
-- 마지막 작업일: 2026-05-20
-- 완료된 작업: **Ch7~10 완전 완료** — 디자인, Supabase 연결, Auth 구현, Posts CRUD 완성
-- 현재 작업: **Ch11 RLS 보안 구현** — 문서 정비 완료
-- 다음: SQL 마이그레이션 작성 및 적용
+- 마지막 작업일: 2026-06-01
+- 완료된 작업: **Ch7~13 완료** — 디자인, Supabase 연결, Auth, Posts CRUD, RLS, UX 개선, Playwright E2E, 배포 검증까지 완료
+- 현재 작업: **최종 검증 보고서 정리**
+- 다음: 제출용 링크/보고서 확인
 
 ## 기술 결정 사항
 
@@ -36,6 +36,27 @@
 - `app/posts/[id]/page.tsx` (Ch10): readPostById + 작성자 UI 분기, notFound() 처리, 삭제 기능
 - `app/posts/[id]/edit/page.tsx` (Ch10): updatePost 구현, 작성자 확인
 - `app/posts/new/page.tsx` (Ch10): createPost 구현, Auth 체크
+
+## Ch13: AI 결과물 검증 (로컬 E2E + 배포 검증)
+
+### 구현/검증 완료
+- `tests/auth-crud.spec.ts`: Playwright E2E 2개 작성
+  - 행복 경로: 로그인 → 글 작성 → 상세 페이지 확인 → 목록 노출 확인
+  - 거절 경로: 비로그인 상태에서 `/posts/new` 접근 시 `/login` 리다이렉트 확인
+- `playwright.config.ts`: `BASE_URL`/로컬 모두 대응하는 설정 정리
+- `package.json`: `test:e2e` 스크립트 추가
+
+### 실행 결과
+- 로컬 빌드: `npm run build` 성공
+- 로컬 E2E: `npm run test:e2e` 성공 (2 passed, Chromium only)
+- 배포 E2E: `BASE_URL=https://my-first-web-chi-six.vercel.app` 기준 Chromium 통과
+- 테스트 완료 후 생성된 E2E 게시글은 자동 삭제하도록 정리
+
+### 배포 검증 메모
+- 배포 URL: https://my-first-web-chi-six.vercel.app/
+- 웹킷은 배포 환경에서 로그인 플로우가 한 번 불안정했지만, Chromium 기준 핵심 시나리오는 통과
+- Supabase 정책 화면 확인 결과 `public.posts`는 SELECT/INSERT/UPDATE/DELETE 정책이 적용되어 있음
+- `public.profiles`는 RLS 비활성 상태로 보이며, Ch13 핵심 범위는 posts 정책 검증까지 완료
 
 ## Ch12: 에러 처리 및 UX 개선 (최근 작업)
 

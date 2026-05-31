@@ -80,7 +80,7 @@ export default function PostsPage() {
                   {post.title}
                 </h2>
                 <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{post.content}</p>
-                <p className="mt-4 text-xs text-slate-500">작성자 ID: {post.user_id}</p>
+                <p className="mt-4 text-xs text-slate-500">작성자: (비공개)</p>
               </Link>
             </article>
           ))}

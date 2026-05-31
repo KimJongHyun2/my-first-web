@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useParams, notFound } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,7 +41,10 @@ export default function PostDetailPage() {
           .maybeSingle<PostRow>();
 
         if (fetchError || !data) {
-          notFound();
+          console.error('Failed to fetch post:', fetchError);
+          setError('게시글을 찾을 수 없습니다.');
+          setPost(null);
+          return;
         }
 
         setPost(data);
@@ -137,7 +140,7 @@ export default function PostDetailPage() {
           {post.title}
         </h1>
         <p className="text-sm text-slate-500">
-          {formatDate(post.created_at)} · 작성자 ID: {post.user_id}
+          {formatDate(post.created_at)} · 작성자: (비공개)
         </p>
       </header>
 
