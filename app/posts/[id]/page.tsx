@@ -6,8 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-
+  
 type PostRow = {
   id: string;
   title: string;
