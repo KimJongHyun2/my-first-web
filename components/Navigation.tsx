@@ -1,13 +1,35 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 
+type Theme = 'light' | 'dark';
+
 export default function Navigation() {
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
+  const [theme, setTheme] = useState<Theme>('light');
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const nextTheme: Theme = savedTheme === 'dark' ? 'dark' : 'light';
+
+    setTheme(nextTheme);
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+    document.body.classList.toggle('dark', nextTheme === 'dark');
+  }, []);
+
+  const handleThemeToggle = () => {
+    const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark';
+
+    setTheme(nextTheme);
+    localStorage.setItem('theme', nextTheme);
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+    document.body.classList.toggle('dark', nextTheme === 'dark');
+  };
 
   const handleLogout = async () => {
     const { error } = await signOut();
@@ -16,7 +38,7 @@ export default function Navigation() {
     }
   };
 
-  const displayName = user?.user_metadata?.name || '내';
+  const displayName = user?.user_metadata?.name || '나';
 
   return (
     <nav className="sticky top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8">
@@ -27,13 +49,14 @@ export default function Navigation() {
           </span>
           <span>{displayName}님의 블로그</span>
         </Link>
+
         <div className="flex items-center gap-2 text-sm font-medium text-slate-600 sm:gap-3">
-          <Link href="/" className="rounded-full px-3 py-2 transition hover:bg-slate-100 hover:text-slate-900">
+          <Link href="/" className="rounded-full px-3 py-2 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50">
             홈
           </Link>
           <Link
             href="/posts"
-            className="rounded-full px-3 py-2 transition hover:bg-slate-100 hover:text-slate-900"
+            className="rounded-full px-3 py-2 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50"
           >
             게시글
           </Link>
@@ -44,7 +67,7 @@ export default function Navigation() {
             <>
               <Link
                 href="/profile"
-                className="rounded-full px-3 py-2 transition hover:bg-slate-100 hover:text-slate-900"
+                className="rounded-full px-3 py-2 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50"
               >
                 프로필
               </Link>
@@ -58,7 +81,7 @@ export default function Navigation() {
                 onClick={handleLogout}
                 variant="ghost"
                 size="sm"
-                className="rounded-full px-4 py-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                className="rounded-full px-4 py-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50"
               >
                 로그아웃
               </Button>
@@ -67,7 +90,7 @@ export default function Navigation() {
             <>
               <Link
                 href="/login"
-                className="rounded-full px-4 py-2 transition hover:bg-slate-100 hover:text-slate-900"
+                className="rounded-full px-4 py-2 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50"
               >
                 로그인
               </Link>
@@ -79,6 +102,17 @@ export default function Navigation() {
               </Link>
             </>
           )}
+
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            onClick={handleThemeToggle}
+            className="rounded-full border-white/60 bg-white/80 text-base text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50"
+            aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+          >
+            {theme === 'dark' ? '🌙' : '☀️'}
+          </Button>
         </div>
       </div>
     </nav>
