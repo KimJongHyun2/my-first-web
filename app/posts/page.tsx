@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import SearchBar, { type SearchScope } from "@/components/SearchBar";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { formatDate } from "@/lib/utils";
@@ -31,6 +32,31 @@ export default function PostsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [likingPostId, setLikingPostId] = useState<string | null>(null);
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchScope, setSearchScope] = useState<SearchScope>("title-content");
+
+  const filteredPosts = useMemo(() => {
+    const normalizedKeyword = searchKeyword.trim().toLowerCase();
+
+    if (!normalizedKeyword) {
+      return posts;
+    }
+
+    return posts.filter((post) => {
+      const title = post.title.toLowerCase();
+      const content = post.content.toLowerCase();
+
+      if (searchScope === "title") {
+        return title.includes(normalizedKeyword);
+      }
+
+      if (searchScope === "content") {
+        return content.includes(normalizedKeyword);
+      }
+
+      return title.includes(normalizedKeyword) || content.includes(normalizedKeyword);
+    });
+  }, [posts, searchKeyword, searchScope]);
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -108,13 +134,26 @@ export default function PostsPage() {
 
       {!loading && error ? <p className="apple-card p-6 text-sm text-red-600">{error}</p> : null}
 
+      {!loading && !error ? (
+        <SearchBar
+          query={searchKeyword}
+          onChange={setSearchKeyword}
+          scope={searchScope}
+          onScopeChange={setSearchScope}
+        />
+      ) : null}
+
       {!loading && !error && posts.length === 0 ? (
         <p className="apple-card border-dashed p-6 text-sm text-slate-600">아직 게시글이 없어요.</p>
       ) : null}
 
-      {!loading && !error && posts.length > 0 ? (
+      {!loading && !error && posts.length > 0 && filteredPosts.length === 0 ? (
+        <p className="apple-card border-dashed p-6 text-sm text-slate-600">검색 결과가 없습니다.</p>
+      ) : null}
+
+      {!loading && !error && filteredPosts.length > 0 ? (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {posts.map((post) => (
+          {filteredPosts.map((post) => (
             <article
               key={post.id}
               className="group apple-card p-5 transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(15,23,42,0.12)]"
