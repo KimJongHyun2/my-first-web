@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
@@ -13,6 +14,7 @@ type PostRow = {
   content: string;
   created_at: string;
   user_id: string;
+  like_count: number;
 };
 
 type CommentRow = {
@@ -23,6 +25,11 @@ type CommentRow = {
   content: string;
   created_at: string;
 };
+
+const normalizePost = (post: Omit<PostRow, "like_count"> & { like_count?: number | null }): PostRow => ({
+  ...post,
+  like_count: post.like_count ?? 0,
+});
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -36,6 +43,7 @@ export default function PostDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isLiking, setIsLiking] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
@@ -50,11 +58,22 @@ export default function PostDetailPage() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const { data, error: fetchError } = await supabase
+        let { data, error: fetchError } = await supabase
           .from("posts")
-          .select("id, title, content, created_at, user_id")
+          .select("id, title, content, created_at, user_id, like_count")
           .eq("id", id)
           .maybeSingle<PostRow>();
+
+        if (fetchError) {
+          const fallbackResult = await supabase
+            .from("posts")
+            .select("id, title, content, created_at, user_id")
+            .eq("id", id)
+            .maybeSingle<Omit<PostRow, "like_count">>();
+
+          data = fallbackResult.data ? normalizePost(fallbackResult.data) : null;
+          fetchError = fallbackResult.error;
+        }
 
         if (fetchError || !data) {
           console.error('Failed to fetch post:', fetchError);
@@ -63,7 +82,7 @@ export default function PostDetailPage() {
           return;
         }
 
-        setPost(data);
+        setPost(normalizePost(data));
       } catch (err) {
         setError("게시글을 불러올 수 없습니다.");
         console.error("Failed to fetch post:", err);
@@ -148,6 +167,34 @@ export default function PostDetailPage() {
       console.error("Delete error:", err);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!post) {
+      return;
+    }
+
+    setIsLiking(true);
+
+    try {
+      const response = await fetch(`/api/posts/${post.id}/like`, {
+        method: "POST",
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.warn("Failed to like post:", result.error ?? response.statusText);
+        return;
+      }
+
+      setPost((currentPost) =>
+        currentPost ? { ...currentPost, like_count: result.likeCount } : currentPost,
+      );
+    } catch (likeError) {
+      console.error("Failed to like post:", likeError);
+    } finally {
+      setIsLiking(false);
     }
   };
 
@@ -259,6 +306,16 @@ export default function PostDetailPage() {
       </header>
 
       <p className="max-w-3xl text-base leading-8 text-slate-600">{post.content}</p>
+
+      <Button
+        type="button"
+        variant="outline"
+        disabled={isLiking}
+        onClick={handleLike}
+        className="w-fit border-slate-200 bg-white/85 text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+      >
+        👍 좋아요 {post.like_count}
+      </Button>
 
       <section className="space-y-5 rounded-[2rem] border border-slate-200/80 bg-white/80 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
         <div className="space-y-1">

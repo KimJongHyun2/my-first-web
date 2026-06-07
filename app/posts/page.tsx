@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { formatDate } from "@/lib/utils";
 
@@ -11,28 +12,45 @@ type PostRow = {
   content: string;
   created_at: string;
   user_id: string;
+  like_count: number;
 };
 
 const supabase = createClient();
+
+const normalizePost = (post: Omit<PostRow, "like_count"> & { like_count?: number | null }): PostRow => ({
+  ...post,
+  like_count: post.like_count ?? 0,
+});
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<PostRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [likingPostId, setLikingPostId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadPosts = async () => {
-      const { data, error: queryError } = await supabase
+      let { data, error: queryError } = await supabase
         .from("posts")
-        .select("id, title, content, created_at, user_id")
+        .select("id, title, content, created_at, user_id, like_count")
         .order("created_at", { ascending: false });
+
+      if (queryError) {
+        const fallbackResult = await supabase
+          .from("posts")
+          .select("id, title, content, created_at, user_id")
+          .order("created_at", { ascending: false });
+
+        data = fallbackResult.data?.map(normalizePost) ?? null;
+        queryError = fallbackResult.error;
+      }
 
       if (queryError) {
         console.error("Failed to load posts:", queryError);
         setError("게시글을 불러오지 못했습니다.");
         setPosts([]);
       } else {
-        setPosts(data ?? []);
+        setPosts((data ?? []).map(normalizePost));
         setError(null);
       }
 
@@ -41,6 +59,32 @@ export default function PostsPage() {
 
     loadPosts();
   }, []);
+
+  const handleLike = async (postId: string) => {
+    setLikingPostId(postId);
+
+    try {
+      const response = await fetch(`/api/posts/${postId}/like`, {
+        method: "POST",
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.warn("Failed to like post:", result.error ?? response.statusText);
+        return;
+      }
+
+      setPosts((currentPosts) =>
+        currentPosts.map((post) =>
+          post.id === postId ? { ...post, like_count: result.likeCount } : post,
+        ),
+      );
+    } catch (likeError) {
+      console.error("Failed to like post:", likeError);
+    } finally {
+      setLikingPostId(null);
+    }
+  };
 
   return (
     <section className="space-y-8">
@@ -82,6 +126,16 @@ export default function PostsPage() {
                 <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{post.content}</p>
                 <p className="mt-4 text-xs text-slate-500">작성자: (비공개)</p>
               </Link>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={likingPostId === post.id}
+                onClick={() => handleLike(post.id)}
+                className="mt-5 border-slate-200 bg-white/85 text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+              >
+                👍 좋아요 {post.like_count}
+              </Button>
             </article>
           ))}
         </div>
