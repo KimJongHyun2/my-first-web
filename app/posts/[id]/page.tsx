@@ -15,6 +15,7 @@ type PostRow = {
   created_at: string;
   user_id: string;
   like_count: number;
+  image_url?: string | null;
 };
 
 type CommentRow = {
@@ -26,9 +27,12 @@ type CommentRow = {
   created_at: string;
 };
 
-const normalizePost = (post: Omit<PostRow, "like_count"> & { like_count?: number | null }): PostRow => ({
+const normalizePost = (
+  post: Omit<PostRow, "like_count"> & { like_count?: number | null; image_url?: string | null },
+): PostRow => ({
   ...post,
   like_count: post.like_count ?? 0,
+  image_url: post.image_url ?? null,
 });
 
 export default function PostDetailPage() {
@@ -60,7 +64,7 @@ export default function PostDetailPage() {
       try {
         let { data, error: fetchError } = await supabase
           .from("posts")
-          .select("id, title, content, created_at, user_id, like_count")
+          .select("id, title, content, created_at, user_id, like_count, image_url")
           .eq("id", id)
           .maybeSingle<PostRow>();
 
@@ -304,6 +308,12 @@ export default function PostDetailPage() {
           {formatDate(post.created_at)} · 작성자: (비공개)
         </p>
       </header>
+
+      {post.image_url ? (
+        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-100 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+          <img src={post.image_url} alt={post.title} className="block h-auto w-full object-contain" />
+        </div>
+      ) : null}
 
       <p className="max-w-3xl text-base leading-8 text-slate-600">{post.content}</p>
 

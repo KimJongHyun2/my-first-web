@@ -13,13 +13,17 @@ type PostRow = {
   created_at: string;
   user_id: string;
   like_count: number;
+  image_url?: string | null;
 };
 
 const supabase = createClient();
 
-const normalizePost = (post: Omit<PostRow, "like_count"> & { like_count?: number | null }): PostRow => ({
+const normalizePost = (
+  post: Omit<PostRow, "like_count"> & { like_count?: number | null; image_url?: string | null },
+): PostRow => ({
   ...post,
   like_count: post.like_count ?? 0,
+  image_url: post.image_url ?? null,
 });
 
 export default function PostsPage() {
@@ -30,10 +34,12 @@ export default function PostsPage() {
 
   useEffect(() => {
     const loadPosts = async () => {
-      let { data, error: queryError } = await supabase
+      const initialResult = await supabase
         .from("posts")
-        .select("id, title, content, created_at, user_id, like_count")
+        .select("id, title, content, created_at, user_id, like_count, image_url")
         .order("created_at", { ascending: false });
+      let data: PostRow[] | null = initialResult.data?.map(normalizePost) ?? null;
+      let queryError = initialResult.error;
 
       if (queryError) {
         const fallbackResult = await supabase
@@ -114,6 +120,11 @@ export default function PostsPage() {
               className="group apple-card p-5 transition duration-300 hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(15,23,42,0.12)]"
             >
               <Link href={`/posts/${post.id}`} className="block">
+                {post.image_url ? (
+                  <div className="mb-4 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-100">
+                    <img src={post.image_url} alt="" className="h-40 w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-between gap-3">
                   <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500">
                     Post

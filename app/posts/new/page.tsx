@@ -2,10 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { ImageIcon, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
+const MAX_IMAGE_SIZE = 1024 * 1024 * 2;
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png"];
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -14,6 +17,8 @@ export default function NewPostPage() {
   const [content, setContent] = useState("");
   const [titleError, setTitleError] = useState<string | null>(null);
   const [contentError, setContentError] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -32,6 +37,46 @@ export default function NewPostPage() {
       }
     };
   }, []);
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    setImageError(null);
+
+    if (!file) {
+      setImageUrl(null);
+      return;
+    }
+
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setImageUrl(null);
+      setImageError("jpg, jpeg, png 파일만 첨부할 수 있습니다.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setImageUrl(null);
+      setImageError("이미지는 2MB 이하만 첨부할 수 있습니다.");
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageUrl(typeof reader.result === "string" ? reader.result : null);
+    };
+    reader.onerror = () => {
+      setImageUrl(null);
+      setImageError("이미지를 미리보기로 불러오지 못했습니다.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageRemove = () => {
+    setImageUrl(null);
+    setImageError(null);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -72,6 +117,7 @@ export default function NewPostPage() {
       .insert({
         title: title.trim(),
         content: content.trim(),
+        image_url: imageUrl,
         user_id: user.id,
         created_at: new Date().toISOString(),
       })
@@ -151,6 +197,40 @@ export default function NewPostPage() {
             required
           />
           {contentError ? <p className="text-sm text-red-600">{contentError}</p> : null}
+        </div>
+
+        <div className="space-y-3">
+          <label htmlFor="image" className="block text-sm font-medium text-slate-600">
+            이미지 첨부
+          </label>
+          <label
+            htmlFor="image"
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-[1.5rem] border border-dashed border-slate-300 bg-white/80 px-4 py-6 text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:bg-slate-50"
+          >
+            <ImageIcon className="h-4 w-4" />
+            jpg, jpeg, png 파일 선택
+          </label>
+          <input
+            id="image"
+            type="file"
+            accept="image/jpeg,image/png"
+            onChange={handleImageChange}
+            className="sr-only"
+          />
+          {imageError ? <p className="text-sm text-red-600">{imageError}</p> : null}
+          {imageUrl ? (
+            <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white/85 shadow-sm">
+              <img src={imageUrl} alt="선택한 이미지 미리보기" className="max-h-80 w-full object-cover" />
+              <button
+                type="button"
+                onClick={handleImageRemove}
+                className="absolute right-3 top-3 rounded-full bg-white/90 p-2 text-slate-600 shadow-lg shadow-slate-900/10 transition hover:bg-white hover:text-slate-950"
+                aria-label="이미지 제거"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : null}
         </div>
 
         {errorMessage ? <p className="text-sm text-red-600">{errorMessage}</p> : null}
