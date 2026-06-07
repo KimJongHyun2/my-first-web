@@ -7,6 +7,7 @@ import * as authFunctions from '@/lib/auth';
 interface User {
   id: string;
   email?: string;
+  created_at?: string;
   user_metadata?: {
     name?: string;
   };

@@ -43,6 +43,12 @@ export default function Navigation() {
           ) : user ? (
             <>
               <Link
+                href="/profile"
+                className="rounded-full px-3 py-2 transition hover:bg-slate-100 hover:text-slate-900"
+              >
+                프로필
+              </Link>
+              <Link
                 href="/posts/new"
                 className="rounded-full bg-slate-900 px-4 py-2 text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800"
               >
